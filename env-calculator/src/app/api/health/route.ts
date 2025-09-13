@@ -5,9 +5,9 @@ import { checkStorageHealth } from '@/lib/storage';
 export async function GET() {
   try {
     const healthStatus = await checkStorageHealth();
-    
-    const statusCode = healthStatus.status === 'healthy' ? 200 : 
-                      healthStatus.status === 'degraded' ? 206 : 500;
+
+    // Return 200 for both healthy and degraded to satisfy platform health checks
+    const statusCode = healthStatus.status === 'failed' ? 500 : 200;
 
     return NextResponse.json(healthStatus, { status: statusCode });
   } catch (error) {
