@@ -3,7 +3,7 @@ FROM node:18-alpine AS base
 
 # 安装依赖
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat su-exec
 WORKDIR /app
 
 # 复制包管理文件（构建阶段需要 devDependencies）
@@ -27,6 +27,9 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# 安装 su-exec 用于权限切换
+RUN apk add --no-cache su-exec
+
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV CLAW_CLOUD_RUN true
@@ -35,17 +38,17 @@ ENV CLAW_CLOUD_RUN true
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# 创建存储目录
-RUN mkdir -p /app/data /app/backups
-RUN chown -R nextjs:nodejs /app/data /app/backups
+# 创建存储目录并设置权限
+RUN mkdir -p /app/data /app/backups && \
+    chown -R nextjs:nodejs /app/data /app/backups
 
 # 复制构建产物
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# 切换到非 root 用户
-USER nextjs
+# 复制启动脚本
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
 # 暴露端口
 EXPOSE 3000
@@ -53,5 +56,5 @@ EXPOSE 3000
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# 启动应用
-CMD ["node", "server.js"]
+# 使用启动脚本处理权限并启动应用
+CMD ["/entrypoint.sh"]

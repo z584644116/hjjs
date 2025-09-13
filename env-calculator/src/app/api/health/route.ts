@@ -1,15 +1,20 @@
-// 存储健康检查 API
-import { NextResponse } from 'next/server';
+// 健康检查 API（默认浅检查 200，?deep=true 进行存储读写自检）
+import { NextRequest, NextResponse } from 'next/server';
 import { checkStorageHealth } from '@/lib/storage';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const healthStatus = await checkStorageHealth();
+    const { searchParams } = new URL(request.url);
+    const deep = searchParams.get('deep');
 
-    // Return 200 for both healthy and degraded to satisfy platform health checks
-    const statusCode = healthStatus.status === 'failed' ? 500 : 200;
+    if (deep === '1' || deep === 'true') {
+      const healthStatus = await checkStorageHealth();
+      const statusCode = healthStatus.status === 'failed' ? 500 : 200;
+      return NextResponse.json(healthStatus, { status: statusCode });
+    }
 
-    return NextResponse.json(healthStatus, { status: statusCode });
+    // 浅检查：仅表明服务已启动
+    return NextResponse.json({ status: 'ok', timestamp: new Date().toISOString() }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       {
