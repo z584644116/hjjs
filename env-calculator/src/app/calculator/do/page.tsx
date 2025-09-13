@@ -84,29 +84,10 @@ export default function DOCalculatorPage() {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "12px" }}>
               <div>
-                <Title2 style={{ fontSize: 16, marginBottom: 6 }}>标准大气压当前温度下的饱和DO (G2)</Title2>
-                <Body1>{result.g2_at_1atm.toFixed(2)} mg/L</Body1>
-                <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-                  来自 0~40℃标准表（整数温度线性插值）
-                </Text>
-              </div>
-
-              <div>
-                <Title2 style={{ fontSize: 16, marginBottom: 6 }}>水蒸气饱和压 e_s(T)</Title2>
-                <Body1>{result.es_kpa.toFixed(5)} kPa</Body1>
-                <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-                  公式：0.61121 * exp((18.678 - T/234.5) * T/(T+257.14))
-                </Text>
-              </div>
-
-              <div>
                 <Title2 style={{ fontSize: 16, marginBottom: 6 }}>饱和溶解氧标准值 (mg/L)</Title2>
                 <Body1 style={{ fontWeight: 600, fontSize: 20 }}>
                   {result.standard_value.toFixed(2)}
                 </Body1>
-                <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-                  Excel舍入：银行家舍入到小数点后2位
-                </Text>
               </div>
 
               <div>
