@@ -15,6 +15,9 @@ COPY . .
 # 构建应用
 RUN npm run build
 
+# 创建数据目录
+RUN mkdir -p /app/data
+
 # 暴露端口
 EXPOSE 3000
 

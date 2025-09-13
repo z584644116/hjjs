@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { User, AuthMode, Instrument } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
@@ -75,11 +75,36 @@ interface InstrumentStore {
   getInstrument: (id: string) => Instrument | undefined;
 }
 
+// 动态存储适配器：根据当前用户状态选择存储方式
+const createDynamicStorage = () => {
+  return {
+    getItem: async (name: string) => {
+      const authStore = useAuthStore.getState();
+      const userId = authStore.currentUser?.id;
+      const adapter = createStorageAdapter(userId);
+      const value = await adapter.getItem(name);
+      return value ? JSON.parse(value) : null;
+    },
+    setItem: async (name: string, value: any) => {
+      const authStore = useAuthStore.getState();
+      const userId = authStore.currentUser?.id;
+      const adapter = createStorageAdapter(userId);
+      await adapter.setItem(name, JSON.stringify(value));
+    },
+    removeItem: async (name: string) => {
+      const authStore = useAuthStore.getState();
+      const userId = authStore.currentUser?.id;
+      const adapter = createStorageAdapter(userId);
+      await adapter.removeItem(name);
+    },
+  };
+};
+
 export const useInstrumentStore = create<InstrumentStore>()(
   persist(
     (set, get) => ({
       instruments: [],
-      
+
       addInstrument: (model, maxFlowRate) => {
         const newInstrument: Instrument = {
           id: uuidv4(),
@@ -87,12 +112,12 @@ export const useInstrumentStore = create<InstrumentStore>()(
           maxFlowRate,
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           instruments: [...state.instruments, newInstrument],
         }));
       },
-      
+
       updateInstrument: (id, updates) => {
         set((state) => ({
           instruments: state.instruments.map((instrument) =>
@@ -100,19 +125,20 @@ export const useInstrumentStore = create<InstrumentStore>()(
           ),
         }));
       },
-      
+
       deleteInstrument: (id) => {
         set((state) => ({
           instruments: state.instruments.filter((instrument) => instrument.id !== id),
         }));
       },
-      
+
       getInstrument: (id) => {
         return get().instruments.find((instrument) => instrument.id === id);
       },
     }),
     {
       name: STORAGE_KEYS.INSTRUMENTS,
+      storage: createJSONStorage(() => createDynamicStorage()),
     }
   )
 );
