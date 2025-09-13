@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const storage = createServerStorageAdapter(userId);
+    const storage = await createServerStorageAdapter(userId);
     const value = await storage.getItem(key);
 
     return NextResponse.json({
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const storage = createServerStorageAdapter(userId);
+    const storage = await createServerStorageAdapter(userId);
     await storage.setItem(key, value);
 
     return NextResponse.json({
@@ -83,7 +83,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const storage = createServerStorageAdapter(userId);
+    const storage = await createServerStorageAdapter(userId);
     await storage.removeItem(key);
 
     return NextResponse.json({
@@ -109,7 +109,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { userId = 'anonymous' } = body;
 
-    const storage = createServerStorageAdapter(userId);
+    const storage = await createServerStorageAdapter(userId);
     await storage.clear();
 
     return NextResponse.json({

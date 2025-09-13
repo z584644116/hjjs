@@ -4,10 +4,8 @@ const nextConfig: NextConfig = {
   // ClawCloud Run 优化配置
   output: 'standalone',
 
-  // 实验性功能
-  experimental: {
-    serverComponentsExternalPackages: ['fs', 'path'],
-  },
+  // 服务器外部依赖（替代 experimental.serverComponentsExternalPackages）
+  serverExternalPackages: ['fs', 'path'],
 
   // 环境变量配置
   env: {
@@ -21,8 +19,6 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
-  // 构建优化
-  swcMinify: true,
 
   // 重定向配置
   async redirects() {
