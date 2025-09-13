@@ -25,6 +25,14 @@ const navigationItems = [
     available: true,
   },
   {
+    id: 'do-saturation',
+    title: '水饱和空气溶解氧计算',
+    description: '按温度(0~40℃)与大气压换算饱和DO与核查示值范围',
+    icon: <Calculator24Regular />,
+    href: '/calculator/do',
+    available: true,
+  },
+  {
     id: 'future-feature-1',
     title: '功能模块 2',
     description: '即将推出更多环境计算功能',
