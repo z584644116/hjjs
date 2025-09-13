@@ -56,6 +56,14 @@ const navigationItems = [
     href: '/calculator/gas',
     available: true,
   },
+  {
+    id: 'unorg-suitability',
+    title: '无组织监测适宜度',
+    description: '依据 HJ/T 55-2000 进行适宜度判定',
+    icon: <Calculator24Regular />,
+    href: '/calculator/unorg',
+    available: true,
+  },
 ];
 
 export default function NavigationGrid() {
