@@ -1,5 +1,5 @@
 // Gas unit conversion utilities: ppm ↔ mg/m^3 with temperature & pressure correction
-// Gases: SO2, NO, NO2, CO, NMHC (NMHC defaults to propane-equivalent)
+// Gases: SO2, NO, NO2, CO, NMHC (NMHC treated as carbon-based: ppmC ↔ mgC/m^3)
 
 export type GasKey = 'SO2' | 'NO' | 'NO2' | 'CO' | 'NMHC';
 
@@ -15,7 +15,7 @@ export const GAS_LIST: GasInfo[] = [
   { key: 'NO',  name: '一氧化氮 (NO)',  molarMass_g_mol: 30.006 },
   { key: 'NO2', name: '二氧化氮 (NO₂)', molarMass_g_mol: 46.0055 },
   { key: 'CO',  name: '一氧化碳 (CO)',  molarMass_g_mol: 28.010 },
-  { key: 'NMHC',name: '非甲烷总烃 (NMHC)', molarMass_g_mol: 44.097, note: '按丙烷当量换算' },
+  { key: 'NMHC',name: '非甲烷总烃 (NMHC)', molarMass_g_mol: 12.011, note: '以碳计（ppmC ↔ mgC/m³）' },
 ];
 
 export function getGasInfo(key: GasKey): GasInfo {

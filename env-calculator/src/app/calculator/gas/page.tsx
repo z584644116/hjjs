@@ -102,7 +102,7 @@ export default function GasConverterPage() {
               {result ? `${result.outputValue.toFixed(2)} ${result.outputUnit}` : "--"}
             </Body1>
             <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-              使用理想气体关系校正：T(℃)、P(kPa)；默认 NMHC 以丙烷当量
+              使用理想气体关系校正：T(℃)、P(kPa)；NMHC 以碳计（ppmC↔mgC/m³）
             </Text>
           </Card>
 
