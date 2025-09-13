@@ -1,7 +1,8 @@
-// 云端存储 API 路由
+// 云端存储 API 路由（优先使用 Supabase；未配置时回退到本地文件）
 import { NextRequest, NextResponse } from 'next/server';
 import { promises as fs } from 'fs';
 import path from 'path';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 const DATA_DIR = '/app/data';
 
@@ -32,6 +33,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing userId or key' }, { status: 400 });
     }
 
+    if (isSupabaseConfigured() && supabase) {
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('value')
+        .eq('user_id', userId)
+        .eq('key', key)
+        .maybeSingle();
+      if (error) {
+        console.error('Supabase GET error:', error);
+        return NextResponse.json({ value: null });
+      }
+      return NextResponse.json({ value: data?.value ?? null });
+    }
+
     await ensureDataDir();
     const filePath = getUserDataPath(userId, key);
 
@@ -55,6 +70,17 @@ export async function POST(request: NextRequest) {
 
     if (!userId || !key || value === undefined) {
       return NextResponse.json({ error: 'Missing userId, key, or value' }, { status: 400 });
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase
+        .from('user_settings')
+        .upsert({ user_id: userId, key, value }, { onConflict: 'user_id,key' });
+      if (error) {
+        console.error('Supabase POST error:', error);
+        return NextResponse.json({ error: 'Storage operation failed' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true });
     }
 
     await ensureDataDir();
@@ -83,6 +109,19 @@ export async function DELETE(request: NextRequest) {
 
     if (!userId || !key) {
       return NextResponse.json({ error: 'Missing userId or key' }, { status: 400 });
+    }
+
+    if (isSupabaseConfigured() && supabase) {
+      const { error } = await supabase
+        .from('user_settings')
+        .delete()
+        .eq('user_id', userId)
+        .eq('key', key);
+      if (error) {
+        console.error('Supabase DELETE error:', error);
+        return NextResponse.json({ error: 'Storage operation failed' }, { status: 500 });
+      }
+      return NextResponse.json({ success: true });
     }
 
     const filePath = getUserDataPath(userId, key);

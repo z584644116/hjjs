@@ -1,9 +1,8 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { User, AuthMode, Instrument } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
-import { createStorageAdapter } from '@/lib/storage';
 
 interface AuthStore {
   authMode: AuthMode;
@@ -22,7 +21,7 @@ interface AuthStore {
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set) => ({
-      authMode: 'initial' as AuthMode,
+      authMode: 'guest' as AuthMode,
       currentUser: null,
       isAuthenticated: false,
       
@@ -75,30 +74,6 @@ interface InstrumentStore {
   getInstrument: (id: string) => Instrument | undefined;
 }
 
-// 动态存储适配器：根据当前用户状态选择存储方式
-const createDynamicStorage = () => {
-  return {
-    getItem: async (name: string) => {
-      const authStore = useAuthStore.getState();
-      const userId = authStore.currentUser?.id;
-      const adapter = createStorageAdapter(userId);
-      const value = await adapter.getItem(name);
-      return value ? JSON.parse(value) : null;
-    },
-    setItem: async (name: string, value: any) => {
-      const authStore = useAuthStore.getState();
-      const userId = authStore.currentUser?.id;
-      const adapter = createStorageAdapter(userId);
-      await adapter.setItem(name, JSON.stringify(value));
-    },
-    removeItem: async (name: string) => {
-      const authStore = useAuthStore.getState();
-      const userId = authStore.currentUser?.id;
-      const adapter = createStorageAdapter(userId);
-      await adapter.removeItem(name);
-    },
-  };
-};
 
 export const useInstrumentStore = create<InstrumentStore>()(
   persist(
@@ -138,7 +113,6 @@ export const useInstrumentStore = create<InstrumentStore>()(
     }),
     {
       name: STORAGE_KEYS.INSTRUMENTS,
-      storage: createJSONStorage(() => createDynamicStorage()),
     }
   )
 );

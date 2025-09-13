@@ -14,7 +14,7 @@ import {
 import { useAuthStore } from '@/stores';
 
 export default function TopNavigation() {
-  const { authMode, currentUser, logout, setAuthMode } = useAuthStore();
+  const { authMode } = useAuthStore();
 
   return (
     <div 
@@ -35,33 +35,11 @@ export default function TopNavigation() {
       </Link>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        {authMode === 'registered' && currentUser ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <PersonRegular />
-              <Body1>{currentUser.username}</Body1>
-            </div>
-            <Button
-              appearance="subtle"
-              onClick={() => { logout(); setAuthMode('guest'); }}
-            >
-              退出
-            </Button>
-          </div>
-        ) : authMode === 'guest' ? (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Body1 style={{ color: 'var(--colorNeutralForeground2)' }}>
-              访客模式
-            </Body1>
-            <Button
-              appearance="subtle"
-              size="small"
-              onClick={() => setAuthMode('initial')}
-            >
-              切换模式
-            </Button>
-          </div>
-        ) : null}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Body1 style={{ color: 'var(--colorNeutralForeground2)' }}>
+            访客模式
+          </Body1>
+        </div>
       </div>
     </div>
   );
