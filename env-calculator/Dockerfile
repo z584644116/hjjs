@@ -8,7 +8,7 @@ WORKDIR /app
 
 # 复制包管理文件（构建阶段需要 devDependencies）
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm install --no-audit --no-fund
 
 # 构建应用
 FROM base AS builder
