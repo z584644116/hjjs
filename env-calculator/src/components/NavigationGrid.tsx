@@ -41,12 +41,12 @@ const navigationItems = [
     available: true,
   },
   {
-    id: 'future-feature-2',
-    title: '功能模块 3',
-    description: '敬请期待',
-    icon: <Info24Regular />,
-    href: '#',
-    available: false,
+    id: 'well-calculator',
+    title: '地下水井水体积',
+    description: '输入井参数与水位，计算埋深、井水深度、井水体积',
+    icon: <Calculator24Regular />,
+    href: '/calculator/well',
+    available: true,
   },
 ];
 
