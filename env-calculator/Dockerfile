@@ -21,5 +21,8 @@ RUN mkdir -p /app/data
 # 暴露端口
 EXPOSE 3000
 
+# 以 root 运行，避免卷权限导致的写入失败
+USER root
+
 # 启动应用
-CMD ["npm", "start"]
+CMD ["npm", "run", "start"]
