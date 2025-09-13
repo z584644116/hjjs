@@ -48,9 +48,9 @@ export function computeWell(inputs: WellInputs): WellResult {
   const buriedDepth_m = D - E;                 // 埋深
   const waterDepth_m = B + E - D;              // 井水深度
 
-  // Round depths to 1 decimal as requested
-  const buriedDepthRounded = roundHalfToEven(buriedDepth_m, 1);
-  const waterDepthRounded = roundHalfToEven(waterDepth_m, 1);
+  // Round depths to 2 decimals per latest requirement
+  const buriedDepthRounded = roundHalfToEven(buriedDepth_m, 2);
+  const waterDepthRounded = roundHalfToEven(waterDepth_m, 2);
 
   // If porosity missing, volume result is null per provided Excel convention
   if (G == null || Number.isNaN(G)) {

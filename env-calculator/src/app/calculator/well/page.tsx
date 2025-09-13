@@ -78,12 +78,12 @@ export default function WellCalculatorPage() {
         <div className={styles.resultGrid}>
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>埋深 (m)</Title2>
-            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.buriedDepth_m.toFixed(1)}</Body1>
+            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.buriedDepth_m.toFixed(2)}</Body1>
           </Card>
 
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>井水深度 (m)</Title2>
-            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.waterDepth_m.toFixed(1)}</Body1>
+            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.waterDepth_m.toFixed(2)}</Body1>
           </Card>
 
           <Card style={{ padding: 12 }}>
