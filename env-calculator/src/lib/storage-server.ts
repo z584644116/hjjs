@@ -7,6 +7,19 @@ import type { StorageAdapter } from './storage';
 const STORAGE_DIR = process.env.CLAW_STORAGE_PATH || '/app/data';
 const BACKUP_DIR = process.env.CLAW_BACKUP_PATH || '/app/backups';
 
+
+// 存储的标准记录类型
+type StoredRecord = {
+  key: string;
+  value: string;
+  timestamp: string;
+  userId: string;
+};
+
+function hasErrnoCode(e: unknown): e is { code: string } {
+  return typeof e === 'object' && e !== null && 'code' in e;
+}
+
 // ClawCloud Run 文件系统适配器（生产环境）
 export class ClawCloudAdapter implements StorageAdapter {
   private userId: string;
@@ -35,10 +48,10 @@ export class ClawCloudAdapter implements StorageAdapter {
     try {
       const filePath = this.getFilePath(key);
       const data = await fs.readFile(filePath, 'utf-8');
-      const parsed = JSON.parse(data);
-      return parsed.value || null;
+      const parsed = JSON.parse(data) as Partial<StoredRecord>;
+      return parsed.value ?? null;
     } catch (error) {
-      if ((error as any).code !== 'ENOENT') {
+      if (!hasErrnoCode(error) || error.code !== 'ENOENT') {
         console.error('ClawCloud getItem error:', error);
       }
       return null;
@@ -70,7 +83,7 @@ export class ClawCloudAdapter implements StorageAdapter {
       const filePath = this.getFilePath(key);
       await fs.unlink(filePath);
     } catch (error) {
-      if ((error as any).code !== 'ENOENT') {
+      if (!hasErrnoCode(error) || error.code !== 'ENOENT') {
         console.error('ClawCloud removeItem error:', error);
       }
     }
@@ -87,7 +100,7 @@ export class ClawCloudAdapter implements StorageAdapter {
     }
   }
 
-  private async createBackup(key: string, data: any): Promise<void> {
+  private async createBackup(key: string, data: StoredRecord): Promise<void> {
     try {
       const backupDir = path.join(BACKUP_DIR, this.userId);
       await fs.mkdir(backupDir, { recursive: true });

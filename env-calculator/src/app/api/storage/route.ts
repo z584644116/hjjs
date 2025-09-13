@@ -1,6 +1,6 @@
 // ClawCloud Run 存储 API 路由
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerStorageAdapter, checkStorageHealth } from '@/lib/storage';
+import { createServerStorageAdapter } from '@/lib/storage';
 
 // GET /api/storage?key=xxx&userId=xxx
 export async function GET(request: NextRequest) {

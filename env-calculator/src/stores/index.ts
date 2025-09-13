@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
 import { User, AuthMode, Instrument } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
@@ -17,12 +17,11 @@ interface AuthStore {
   register: (username: string, password: string) => Promise<{ user: User; recoveryKey: string }>;
 }
 
-// 创建适配当前用户的存储适配器
-const createUserStorage = (userId?: string) => createStorageAdapter(userId);
+
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       authMode: 'initial' as AuthMode,
       currentUser: null,
       isAuthenticated: false,

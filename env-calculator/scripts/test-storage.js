@@ -22,7 +22,7 @@ function makeRequest(method, path, data = null) {
         try {
           const data = body ? JSON.parse(body) : {};
           resolve({ status: res.statusCode, data });
-        } catch (error) {
+        } catch (_error) {
           resolve({ status: res.statusCode, data: body });
         }
       });

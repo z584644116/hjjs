@@ -133,7 +133,7 @@ export async function getStorageAdapter(userId?: string): Promise<StorageAdapter
 // 存储健康检查
 export async function checkStorageHealth(userId?: string): Promise<{
   status: 'healthy' | 'degraded' | 'failed';
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }> {
   const testKey = '__health_check__';
   const testValue = Date.now().toString();
