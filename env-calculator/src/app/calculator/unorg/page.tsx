@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { Title1, Title2, Body1, Input, Label, Card, Divider, makeStyles, Text, Button } from "@fluentui/react-components";
+import { Title1, Title2, Body1, Input, Label, Card, Divider, makeStyles, Text, Button, Spinner } from "@fluentui/react-components";
+import { Location24Regular } from "@fluentui/react-icons";
 import {
   calculateSolarParams,
   calculateStability,
@@ -68,6 +69,9 @@ export default function UnorganizedSuitabilityPage() {
   const [dirs, setDirs] = useState<(number|"")[]>(Array(10).fill(""));
   const [speeds, setSpeeds] = useState<(number|"")[]>(Array(10).fill(""));
 
+  // GPS定位
+  const [gpsLoading, setGpsLoading] = useState(false);
+
   // 结果
   const [error, setError] = useState<string>("");
   const [stability, setStability] = useState<null | { dayOfYear: number; solarDeclination: number; solarAltitude: number; radiationLevel: -2|-1|0|1|2|3; windSpeed10m: number; stabilityClass: StabilityClass }>(null);
@@ -84,6 +88,47 @@ export default function UnorganizedSuitabilityPage() {
     setDateISO(`${y}-${m}-${d}`);
     setTimeHHmm(`${hh}:${mm}`);
   }, []);
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setError("您的设备不支持GPS定位功能");
+      return;
+    }
+
+    setGpsLoading(true);
+    setError("");
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        setLatStr(latitude.toFixed(4));
+        setLonStr(longitude.toFixed(4));
+        setGpsLoading(false);
+      },
+      (error) => {
+        setGpsLoading(false);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            setError("GPS定位被拒绝，请在浏览器设置中允许位置访问权限");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            setError("GPS定位信息不可用，请检查设备GPS是否开启");
+            break;
+          case error.TIMEOUT:
+            setError("GPS定位超时，请重试");
+            break;
+          default:
+            setError("GPS定位失败，请重试");
+            break;
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000
+      }
+    );
+  };
 
   const handleCalculate = () => {
     setError("");
@@ -157,6 +202,17 @@ export default function UnorganizedSuitabilityPage() {
             <div className={styles.field}>
               <Label required>当地经度 (°)</Label>
               <Input type="text" inputMode="decimal" placeholder="例如 121.4000" value={lonStr} onChange={e => setLonStr((e.target as HTMLInputElement).value)} />
+            </div>
+            <div style={{ marginTop: 8 }}>
+              <Button
+                appearance="outline"
+                size="small"
+                icon={gpsLoading ? <Spinner size="tiny" /> : <Location24Regular />}
+                disabled={gpsLoading}
+                onClick={handleGetLocation}
+              >
+                {gpsLoading ? "定位中..." : "获取当前位置"}
+              </Button>
             </div>
           </div>
 
