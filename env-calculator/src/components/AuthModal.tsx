@@ -74,7 +74,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         localStorage.setItem(`env_calc_user_data_${username}`, JSON.stringify(user));
         
         // 自动登录
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line no-unused-vars
         const { password: _, recoveryKey: __, ...userWithoutSensitive } = user;
         login(userWithoutSensitive);
         setAuthMode('registered');
@@ -95,7 +95,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           return;
         }
         
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line no-unused-vars
         const { password: _, recoveryKey, ...userWithoutSensitive } = user;
         login(userWithoutSensitive);
         setAuthMode('registered');
@@ -130,7 +130,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   const handleRecoveryKeyConfirm = () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line no-unused-vars
     const { password: _, recoveryKey, ...userWithoutSensitive } = JSON.parse(
       localStorage.getItem(`env_calc_user_data_${username}`) || '{}'
     );
