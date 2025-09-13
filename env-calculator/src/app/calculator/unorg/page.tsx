@@ -24,6 +24,18 @@ const useStyles = makeStyles({
     gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
     gap: "12px",
   },
+  readingsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+    gap: "8px",
+    marginTop: "12px",
+  },
+  readingItem: { display: "flex", flexDirection: "column", gap: "6px" },
+  pairRow: {
+    display: "flex",
+    gap: "8px",
+    '@media (max-width: 520px)': { flexDirection: 'column' },
+  },
   badge: {
     display: "inline-block",
     padding: "6px 12px",
@@ -184,14 +196,16 @@ export default function UnorganizedSuitabilityPage() {
         <div className="bg-gray-100" style={{ padding: 16, borderRadius: 8, marginTop: 16 }}>
           <Title2 style={{ fontSize: 16, marginBottom: 8 }}>风向与风速连续读数 (10次)</Title2>
           <Text size={200} style={{ color: 'var(--colorNeutralForeground2)' }}>输入10次连续读数（至少2个风向用于标准差计算）。</Text>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginTop: 12 }}>
+          <div className={styles.readingsGrid}>
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div key={i} className={styles.readingItem}>
                 <Label>第 {i + 1} 次</Label>
-                <div style={{ display: 'flex', gap: 8 }}>
+                <div className={styles.pairRow}>
                   <Input type="number" step={0.1} placeholder="风向°" value={dirs[i] === '' ? '' : String(dirs[i])}
+                    style={{ flex: 1, minWidth: 0 }}
                     onChange={e => setDirs(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value); return arr; })} />
                   <Input type="number" step={0.1} placeholder="风速m/s" value={speeds[i] === '' ? '' : String(speeds[i])}
+                    style={{ flex: 1, minWidth: 0 }}
                     onChange={e => setSpeeds(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value); return arr; })} />
                 </div>
               </div>
