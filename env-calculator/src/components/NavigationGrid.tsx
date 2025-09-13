@@ -48,6 +48,14 @@ const navigationItems = [
     href: '/calculator/well',
     available: true,
   },
+  {
+    id: 'gas-converter',
+    title: '气体单位换算',
+    description: 'SO2/NO/NO2/CO/NMHC 的 ppm ↔ mg/m³ 换算',
+    icon: <Calculator24Regular />,
+    href: '/calculator/gas',
+    available: true,
+  },
 ];
 
 export default function NavigationGrid() {
