@@ -1,0 +1,93 @@
+# ClawCloud Run 部署配置
+apiVersion: v1
+kind: Service
+metadata:
+  name: env-calculator
+  labels:
+    app: env-calculator
+spec:
+  template:
+    metadata:
+      labels:
+        app: env-calculator
+      annotations:
+        # 启用持久化存储
+        clawcloud.io/persistent-storage: "true"
+        clawcloud.io/storage-size: "10Gi"
+        clawcloud.io/backup-enabled: "true"
+    spec:
+      containers:
+      - name: env-calculator
+        image: env-calculator:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: CLAW_CLOUD_RUN
+          value: "true"
+        - name: CLAW_STORAGE_PATH
+          value: "/app/data"
+        - name: CLAW_BACKUP_PATH
+          value: "/app/backups"
+        - name: PORT
+          value: "3000"
+        volumeMounts:
+        - name: storage-volume
+          mountPath: /app/data
+        - name: backup-volume
+          mountPath: /app/backups
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: storage-volume
+        persistentVolumeClaim:
+          claimName: env-calculator-storage
+      - name: backup-volume
+        persistentVolumeClaim:
+          claimName: env-calculator-backup
+  traffic:
+  - percent: 100
+    latestRevision: true
+
+---
+# 持久化存储卷声明
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: env-calculator-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: env-calculator-backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi

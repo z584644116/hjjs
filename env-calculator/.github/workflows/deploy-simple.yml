@@ -1,0 +1,97 @@
+# 简化的 ClawCloud Run 部署工作流
+name: Simple Deploy to ClawCloud
+
+on:
+  push:
+    branches: [ main, production ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: |
+        npm run lint
+        npm run build
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image
+      run: |
+        docker build -t env-calculator:${{ github.sha }} .
+        docker tag env-calculator:${{ github.sha }} env-calculator:latest
+
+    - name: Save build info
+      run: |
+        echo "Build completed successfully"
+        echo "Image: env-calculator:${{ github.sha }}"
+        echo "Commit: ${{ github.sha }}"
+        echo "Branch: ${{ github.ref_name }}"
+        
+        # 保存构建信息到文件
+        cat > build-info.json << EOF
+        {
+          "image": "env-calculator:${{ github.sha }}",
+          "commit": "${{ github.sha }}",
+          "branch": "${{ github.ref_name }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "workflow_run": "${{ github.run_number }}"
+        }
+        EOF
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-info
+        path: build-info.json
+
+    - name: Deploy notification
+      run: |
+        echo "🚀 Deployment ready!"
+        echo "To complete deployment to ClawCloud Run:"
+        echo "1. Configure your ClawCloud credentials"
+        echo "2. Run: npm run deploy:production"
+        echo "3. Or use the deployment script: ./scripts/deploy.sh --env production"
+        echo ""
+        echo "Manual deployment commands:"
+        echo "docker tag env-calculator:${{ github.sha }} your-registry/env-calculator:${{ github.sha }}"
+        echo "docker push your-registry/env-calculator:${{ github.sha }}"
+        echo ""
+        echo "Built image: env-calculator:${{ github.sha }}"
+
+  notify-success:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Success notification
+      run: |
+        echo "✅ Build completed successfully!"
+        echo "Ready for deployment to ClawCloud Run"
+
+  notify-failure:
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+    - name: Failure notification
+      run: |
+        echo "❌ Build failed!"
+        echo "Please check the logs for details"

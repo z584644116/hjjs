@@ -1,0 +1,239 @@
+/* AuthModal 居中样式 - 高优先级覆盖 Fluent UI 默认样式 */
+
+.dialogSurface {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 480px !important;
+  width: 90vw !important;
+  z-index: 1000 !important;
+}
+
+.dialogTitle {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.dialogContent {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.dialogBody {
+  padding: 20px 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.formContainer {
+  width: 100% !important;
+  max-width: 320px !important;
+}
+
+.formFieldsContainer {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+  width: 100% !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.fieldWrapper {
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.field {
+  width: 100% !important;
+  text-align: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.field label {
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+  margin-bottom: 8px !important;
+}
+
+.input {
+  width: 280px !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+}
+
+.recoveryInput {
+  width: 280px !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+  font-family: monospace !important;
+}
+
+.dialogActions {
+  justify-content: center !important;
+  gap: 12px !important;
+  padding: 16px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.actionButton {
+  margin: 0 6px !important;
+}
+
+.divider {
+  margin: 16px 0 !important;
+  width: 100% !important;
+}
+
+.bottomSection {
+  text-align: center !important;
+  padding: 0 0 16px 0 !important;
+  width: 100% !important;
+}
+
+.messageBar {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+.messageBarBody {
+  text-align: center !important;
+}
+
+/* 确保 Fluent UI Field 组件内部元素居中 */
+.field > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.field > div > label {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.field > div > div {
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+}
+
+/* 覆盖 Fluent UI 的默认 Field 样式 */
+.field .fui-Field__label {
+  text-align: center !important;
+  width: 100% !important;
+  display: block !important;
+}
+
+.field .fui-Input {
+  width: 280px !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+/* 确保按钮容器居中 */
+.dialogActions .fui-DialogActions {
+  justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* 恢复密钥弹窗专用样式 */
+.recoveryDialogSurface {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-width: 520px !important;
+  width: 90vw !important;
+  z-index: 1000 !important;
+}
+
+.recoveryDialogTitle {
+  text-align: center !important;
+  width: 100% !important;
+}
+
+.recoveryDialogContent {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.recoveryDialogBody {
+  padding: 20px 0 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.recoveryMessageBar {
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  text-align: center !important;
+}
+
+.recoveryKeySection {
+  margin: 20px 0 !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.recoveryKeyLabel {
+  display: block !important;
+  margin-bottom: 8px !important;
+  text-align: center !important;
+  width: 100% !important;
+  font-weight: 500 !important;
+}
+
+.recoveryKeyInput {
+  font-family: monospace !important;
+  font-size: 14px !important;
+  width: 100% !important;
+  max-width: 380px !important;
+  margin: 0 auto !important;
+  text-align: center !important;
+  padding: 12px !important;
+  border-radius: 4px !important;
+}
+
+.recoveryInstructions {
+  line-height: 1.5 !important;
+  text-align: center !important;
+  width: 100% !important;
+  max-width: 400px !important;
+  margin: 0 auto !important;
+  color: var(--colorNeutralForeground2) !important;
+}
+
+.recoveryDialogActions {
+  justify-content: center !important;
+  padding: 16px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.recoveryButton {
+  margin: 0 auto !important;
+}
