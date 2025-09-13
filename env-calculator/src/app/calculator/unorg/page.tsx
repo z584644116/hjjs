@@ -54,8 +54,8 @@ export default function UnorganizedSuitabilityPage() {
   // 时间地点
   const [dateISO, setDateISO] = useState("");
   const [timeHHmm, setTimeHHmm] = useState("");
-  const [lat, setLat] = useState<number | "">(31.2);
-  const [lon, setLon] = useState<number | "">(121.4);
+  const [latStr, setLatStr] = useState<string>("31.2000");
+  const [lonStr, setLonStr] = useState<string>("121.4000");
 
   // 气象条件
   const [totalCloud, setTotalCloud] = useState<number | "">(4);
@@ -90,7 +90,9 @@ export default function UnorganizedSuitabilityPage() {
     setSuitability(null);
 
     // 校验
-    if (!dateISO || !timeHHmm || typeof lat !== 'number' || typeof lon !== 'number' || typeof totalCloud !== 'number' || typeof lowCloud !== 'number') {
+    const latNum = parseFloat((latStr || '').replace(',', '.'));
+    const lonNum = parseFloat((lonStr || '').replace(',', '.'));
+    if (!dateISO || !timeHHmm || Number.isNaN(latNum) || Number.isNaN(lonNum) || typeof totalCloud !== 'number' || typeof lowCloud !== 'number') {
       setError("时间、地点与气象条件为必填项");
       return;
     }
@@ -114,7 +116,7 @@ export default function UnorganizedSuitabilityPage() {
 
     const measuredWindSpeed = speedVals.reduce((a, b) => a + b, 0) / speedVals.length;
 
-    const solar = calculateSolarParams(dateISO, timeHHmm, lat, lon, totalCloud, lowCloud);
+    const solar = calculateSolarParams(dateISO, timeHHmm, latNum, lonNum, totalCloud, lowCloud);
     const stab = calculateStability(measuredWindSpeed, solar.radiationLevel, windSpeedType, typeof windSpeedHeight === 'number' ? windSpeedHeight : undefined, terrain);
     const merged = { ...solar, ...stab };
     setStability({ ...merged });
@@ -150,11 +152,11 @@ export default function UnorganizedSuitabilityPage() {
             </div>
             <div className={styles.field}>
               <Label required>当地纬度 (°)</Label>
-              <Input type="number" step={0.1} placeholder="例如 31.2" value={lat === '' ? '' : String(lat)} onChange={e => setLat((e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value))} />
+              <Input type="text" inputMode="decimal" placeholder="例如 31.2000" value={latStr} onChange={e => setLatStr((e.target as HTMLInputElement).value)} />
             </div>
             <div className={styles.field}>
               <Label required>当地经度 (°)</Label>
-              <Input type="number" step={0.1} placeholder="例如 121.4" value={lon === '' ? '' : String(lon)} onChange={e => setLon((e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value))} />
+              <Input type="text" inputMode="decimal" placeholder="例如 121.4000" value={lonStr} onChange={e => setLonStr((e.target as HTMLInputElement).value)} />
             </div>
           </div>
 
