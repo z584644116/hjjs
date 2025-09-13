@@ -22,7 +22,7 @@ const useStyles = makeStyles({
 export default function GasConverterPage() {
   const styles = useStyles();
   const [gas, setGas] = useState<GasKey>("SO2");
-  const [temperatureC, setTemperatureC] = useState<number | "">(25);
+  const [temperatureC, setTemperatureC] = useState<number | "">(0);
   const [pressureKPa, setPressureKPa] = useState<number | "">(101.325);
   const [inputValue, setInputValue] = useState<number | "">(1);
   const [inputUnit, setInputUnit] = useState<'ppm' | 'mg/m3'>("ppm");
