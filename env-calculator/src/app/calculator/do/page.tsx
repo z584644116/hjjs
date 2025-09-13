@@ -33,10 +33,6 @@ export default function DOCalculatorPage() {
     <div className="page-container">
       <div className={styles.container}>
         <Title1 style={{ marginBottom: 8 }}>水饱和空气溶解氧计算</Title1>
-        <Body1 style={{ color: "var(--colorNeutralForeground2)", marginBottom: 24 }}>
-          基于标准大气压(101.325 kPa)温度表的饱和DO，按当前大气压修正。
-          温度有效范围：0~40℃。
-        </Body1>
 
         <div className={styles.grid}>
           <div className={styles.field}>

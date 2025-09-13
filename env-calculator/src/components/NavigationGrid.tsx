@@ -33,12 +33,12 @@ const navigationItems = [
     available: true,
   },
   {
-    id: 'future-feature-1',
-    title: '功能模块 2',
-    description: '即将推出更多环境计算功能',
-    icon: <Settings24Regular />,
-    href: '#',
-    available: false,
+    id: 'ph-calculator',
+    title: 'pH 计算',
+    description: '输入温度，显示5种标准缓冲溶液的当前温度标准值',
+    icon: <Calculator24Regular />,
+    href: '/calculator/ph',
+    available: true,
   },
   {
     id: 'future-feature-2',
