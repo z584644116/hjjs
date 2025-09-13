@@ -1,21 +1,14 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const { FlatCompat } = require("@eslint/eslintrc");
+const path = require("path");
 
 const compat = new FlatCompat({
   baseDirectory: __dirname,
 });
 
-const eslintConfig = [
+module.exports = [
   ...compat.extends("next/core-web-vitals"),
   {
     rules: {
-      // 允许 require() 在 .js 脚本文件中使用
-      "@typescript-eslint/no-var-requires": "off",
-      "@typescript-eslint/no-require-imports": "off",
       // 允许未使用的变量（以下划线开头）
       "@typescript-eslint/no-unused-vars": [
         "error",
@@ -38,5 +31,3 @@ const eslintConfig = [
     }
   }
 ];
-
-export default eslintConfig;
