@@ -21,22 +21,24 @@ const useStyles = makeStyles({
 
 export default function WellCalculatorPage() {
   const styles = useStyles();
-  const [B, setB] = useState<number | "">(50);  // m
-  const [C, setC] = useState<number | "">(10);  // cm
-  const [D, setD] = useState<number | "">(10);  // m
-  const [E, setE] = useState<number | "">(0.5); // m
-  const [F, setF] = useState<number | "">(20);  // cm
-  const [G, setG] = useState<number | "">(0.35); // porosity (0~1)
+  const [B, setB] = useState<number | "">("");  // m
+  const [C, setC] = useState<number | "">("");  // cm
+  const [D, setD] = useState<number | "">("");  // m
+  const [E, setE] = useState<number | "">(""); // m
+  const [F, setF] = useState<number | "">("");  // cm
+  const [G, setG] = useState<number | "">(""); // porosity (0~1)
 
+  const inputsValid = useMemo(() => [B, C, D, E, F].every(v => typeof v === 'number'), [B, C, D, E, F]);
   const result = useMemo(() => {
-    const b = typeof B === "number" ? B : NaN;
-    const c = typeof C === "number" ? C : NaN;
-    const d = typeof D === "number" ? D : NaN;
-    const e = typeof E === "number" ? E : NaN;
-    const f = typeof F === "number" ? F : NaN;
+    if (!inputsValid) return null;
+    const b = B as number;
+    const c = C as number;
+    const d = D as number;
+    const e = E as number;
+    const f = F as number;
     const g = typeof G === "number" ? G : undefined;
     return computeWell({ B_depth_m: b, C_id_cm: c, D_waterLevel_m: d, E_headToGround_m: e, F_enlarge_cm: f, G_porosity: g });
-  }, [B, C, D, E, F, G]);
+  }, [inputsValid, B, C, D, E, F, G]);
 
   return (
     <div className="page-container">
@@ -78,18 +80,18 @@ export default function WellCalculatorPage() {
         <div className={styles.resultGrid}>
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>埋深 (m)</Title2>
-            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.buriedDepth_m.toFixed(2)}</Body1>
+            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result ? result.buriedDepth_m.toFixed(2) : "--"}</Body1>
           </Card>
 
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>井水深度 (m)</Title2>
-            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result.waterDepth_m.toFixed(2)}</Body1>
+            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>{result ? result.waterDepth_m.toFixed(2) : "--"}</Body1>
           </Card>
 
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>井水体积 (L)</Title2>
             <Body1 style={{ fontWeight: 600, fontSize: 18 }}>
-              {result.waterVolume_L == null ? "--" : result.waterVolume_L.toFixed(1)}
+              {!result || result.waterVolume_L == null ? "--" : result.waterVolume_L.toFixed(1)}
             </Body1>
           </Card>
         </div>

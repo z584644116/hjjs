@@ -24,7 +24,7 @@ export default function GasConverterPage() {
   const [gas, setGas] = useState<GasKey>("SO2");
   const [temperatureC, setTemperatureC] = useState<number | "">(0);
   const [pressureKPa, setPressureKPa] = useState<number | "">(101.325);
-  const [inputValue, setInputValue] = useState<number | "">(1);
+  const [inputValue, setInputValue] = useState<number | "">("");
   const [inputUnit, setInputUnit] = useState<'ppm' | 'mg/m3'>("ppm");
 
   const result = useMemo(() => {
@@ -75,7 +75,7 @@ export default function GasConverterPage() {
           </div>
 
           <div className={styles.field}>
-            <Label required>输入数值</Label>
+            <Label required>输入浓度</Label>
             <Input type="number" step={0.001} value={inputValue === "" ? "" : String(inputValue)}
               onChange={e => setInputValue((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
           </div>

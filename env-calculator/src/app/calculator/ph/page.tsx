@@ -17,7 +17,7 @@ const useStyles = makeStyles({
 
 export default function PHCalculatorPage() {
   const styles = useStyles();
-  const [temperature, setTemperature] = useState<number | "">(25);
+  const [temperature, setTemperature] = useState<number | "">("");
 
   const result = useMemo(() => {
     const t = typeof temperature === "number" ? temperature : NaN;

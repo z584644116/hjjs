@@ -20,8 +20,8 @@ const useStyles = makeStyles({
 
 export default function DOCalculatorPage() {
   const styles = useStyles();
-  const [pressure, setPressure] = useState<number | "">(STANDARD_ATM_KPA);
-  const [temperature, setTemperature] = useState<number | "">(20);
+  const [pressure, setPressure] = useState<number | "">("");
+  const [temperature, setTemperature] = useState<number | "">("");
 
   const result = useMemo(() => {
     const p = typeof pressure === "number" ? pressure : NaN;

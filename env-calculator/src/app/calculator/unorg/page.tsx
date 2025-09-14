@@ -55,15 +55,15 @@ export default function UnorganizedSuitabilityPage() {
   // 时间地点
   const [dateISO, setDateISO] = useState("");
   const [timeHHmm, setTimeHHmm] = useState("");
-  const [latStr, setLatStr] = useState<string>("31.2000");
-  const [lonStr, setLonStr] = useState<string>("121.4000");
+  const [latStr, setLatStr] = useState<string>("");
+  const [lonStr, setLonStr] = useState<string>("");
 
   // 气象条件
-  const [totalCloud, setTotalCloud] = useState<number | "">(4);
-  const [lowCloud, setLowCloud] = useState<number | "">(2);
+  const [totalCloud, setTotalCloud] = useState<number | "">("");
+  const [lowCloud, setLowCloud] = useState<number | "">("");
   const [windSpeedType, setWindSpeedType] = useState<'custom'|'10m'>('custom');
   const [windSpeedHeight, setWindSpeedHeight] = useState<number | "">(2);
-  const [terrain, setTerrain] = useState<'city'|'countryside'>('countryside');
+  const [terrain, setTerrain] = useState<'city'|'countryside'>('city');
 
   // 连续读数（10次）
   const [dirs, setDirs] = useState<(number|"")[]>(Array(10).fill(""));
