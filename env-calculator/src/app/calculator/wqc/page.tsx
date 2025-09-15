@@ -224,39 +224,15 @@ export default function WaterQualityQCPage() {
 
       <div className="bg-gray-100" style={{ padding: 16, borderRadius: 8 }}>
         <Title2 style={{ fontSize: 16, marginBottom: 8 }}>基础离子 (mg/L)</Title2>
-        <div className="ionGrid">
-          <div className="ionRow">
-            <Label>钾 K⁺</Label>
-            <Input type="text" inputMode="decimal" value={k} onChange={e=>setK((e.target as HTMLInputElement).value)} placeholder="例如 2.5" />
-          </div>
-          <div className="ionRow">
-            <Label>钠 Na⁺</Label>
-            <Input type="text" inputMode="decimal" value={na} onChange={e=>setNa((e.target as HTMLInputElement).value)} placeholder="例如 15.0" />
-          </div>
-          <div className="ionRow">
-            <Label>钙 Ca²⁺</Label>
-            <Input type="text" inputMode="decimal" value={ca} onChange={e=>setCa((e.target as HTMLInputElement).value)} placeholder="例如 80.2" />
-          </div>
-          <div className="ionRow">
-            <Label>镁 Mg²⁺</Label>
-            <Input type="text" inputMode="decimal" value={mg} onChange={e=>setMg((e.target as HTMLInputElement).value)} placeholder="例如 24.3" />
-          </div>
-          <div className="ionRow">
-            <Label>氯 Cl⁻</Label>
-            <Input type="text" inputMode="decimal" value={cl} onChange={e=>setCl((e.target as HTMLInputElement).value)} placeholder="例如 20.0" />
-          </div>
-          <div className="ionRow">
-            <Label>硫酸根 SO₄²⁻</Label>
-            <Input type="text" inputMode="decimal" value={so4} onChange={e=>setSo4((e.target as HTMLInputElement).value)} placeholder="例如 96.0" />
-          </div>
-          <div className="ionRow">
-            <Label>碳酸氢根 HCO₃⁻</Label>
-            <Input type="text" inputMode="decimal" value={hco3} onChange={e=>setHco3((e.target as HTMLInputElement).value)} placeholder="例如 122.0" />
-          </div>
-          <div className="ionRow">
-            <Label>碳酸根 CO₃²⁻</Label>
-            <Input type="text" inputMode="decimal" value={co3} onChange={e=>setCo3((e.target as HTMLInputElement).value)} placeholder="例如 1.0" />
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
+          <div><Label>钾 K⁺</Label><Input type="text" inputMode="decimal" value={k} onChange={e=>setK((e.target as HTMLInputElement).value)} placeholder="例如 2.5" /></div>
+          <div><Label>钠 Na⁺</Label><Input type="text" inputMode="decimal" value={na} onChange={e=>setNa((e.target as HTMLInputElement).value)} placeholder="例如 15.0" /></div>
+          <div><Label>钙 Ca²⁺</Label><Input type="text" inputMode="decimal" value={ca} onChange={e=>setCa((e.target as HTMLInputElement).value)} placeholder="例如 80.2" /></div>
+          <div><Label>镁 Mg²⁺</Label><Input type="text" inputMode="decimal" value={mg} onChange={e=>setMg((e.target as HTMLInputElement).value)} placeholder="例如 24.3" /></div>
+          <div><Label>氯 Cl⁻</Label><Input type="text" inputMode="decimal" value={cl} onChange={e=>setCl((e.target as HTMLInputElement).value)} placeholder="例如 20.0" /></div>
+          <div><Label>硫酸根 SO₄²⁻</Label><Input type="text" inputMode="decimal" value={so4} onChange={e=>setSo4((e.target as HTMLInputElement).value)} placeholder="例如 96.0" /></div>
+          <div><Label>碳酸氢根 HCO₃⁻</Label><Input type="text" inputMode="decimal" value={hco3} onChange={e=>setHco3((e.target as HTMLInputElement).value)} placeholder="例如 122.0" /></div>
+          <div><Label>碳酸根 CO₃²⁻</Label><Input type="text" inputMode="decimal" value={co3} onChange={e=>setCo3((e.target as HTMLInputElement).value)} placeholder="例如 1.0" /></div>
         </div>
       </div>
 
@@ -345,11 +321,6 @@ export default function WaterQualityQCPage() {
             <Card style={{ padding: 12 }}>
               <Title2 style={{ fontSize: 16, marginBottom: 6 }}>电导率 & 离子</Title2>
       <style jsx>{`
-        .ionGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-        @media (max-width: 768px) { .ionGrid { grid-template-columns: 1fr; } }
-        .ionRow { display: flex; align-items: center; gap: 8px; }
-        .ionRow label { min-width: 120px; white-space: nowrap; flex-shrink: 0; }
-        .ionRow input { flex: 1; }
         .optionalRow { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) auto; gap: 8px; align-items: center; }
         @media (max-width: 600px) { .optionalRow { grid-template-columns: 1fr; } }
       `}</style>
