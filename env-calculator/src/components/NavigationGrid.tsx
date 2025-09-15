@@ -64,6 +64,14 @@ const navigationItems = [
     href: '/calculator/unorg',
     available: true,
   },
+  {
+    id: 'water-quality-qc',
+    title: '水质质量控制分析',
+    description: '多模型水质评价',
+    icon: <Calculator24Regular />,
+    href: '/calculator/wqc',
+    available: true,
+  },
 ];
 
 export default function NavigationGrid() {

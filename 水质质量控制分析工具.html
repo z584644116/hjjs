@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水质质量控制分析工具</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Inter字体 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* 自定义样式 */
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] { -moz-appearance: textfield; }
+        
+        /* 标签页样式 */
+        .tab-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .tab-btn.active {
+            color: white;
+            background-color: #3b82f6; /* bg-blue-500 */
+        }
+        
+        /* 结果面板动画 */
+        .analysis-panel {
+            display: none;
+            animation: fade-in 0.5s ease-out forwards;
+        }
+        .analysis-panel.active {
+            display: block;
+        }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* 动态添加行的动画 */
+        @keyframes slide-down {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .new-row { animation: slide-down 0.3s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-gray-200 min-h-screen p-4">
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl p-6 md:p-8 space-y-8">
+        <!-- 标题 -->
+        <div class="text-center">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">水质质量控制分析工具</h1>
+            <p class="text-gray-500 mt-2">多模型水质评价</p>
+        </div>
+
+        <!-- 标签页导航 -->
+        <div class="w-full overflow-x-auto">
+            <div id="tabs-container" class="flex space-x-2 bg-gray-100 p-1.5 rounded-xl">
+                <button data-tab="ion-balance" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">阴阳离子平衡</button>
+                <button data-tab="tds-ions" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">TDS & 离子总量</button>
+                <button data-tab="tds-ec" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">TDS & 电导率</button>
+                <button data-tab="ec-ions" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">电导率 & 离子</button>
+                <button data-tab="hardness" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">总硬度</button>
+                <button data-tab="solubility" class="tab-btn flex-1 text-center px-3 py-2 text-sm font-semibold text-gray-600 rounded-lg whitespace-nowrap">溶解平衡</button>
+            </div>
+        </div>
+
+        <!-- 数据输入区 -->
+        <div class="space-y-8">
+             <!-- 离子输入 -->
+            <div class="space-y-8">
+                <!-- 阳离子部分 -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 border-b-2 border-blue-200 pb-2 mb-4">阳离子 (Cations)</h2>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-5">
+                        <div><label for="k-ion" class="block text-sm font-medium text-gray-600">钾离子 K⁺ (mg/L)</label><input type="number" id="k-ion" placeholder="2.5" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label for="na-ion" class="block text-sm font-medium text-gray-600">钠离子 Na⁺ (mg/L)</label><input type="number" id="na-ion" placeholder="15.0" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label for="ca-ion" class="block text-sm font-medium text-gray-600">钙离子 Ca²⁺ (mg/L)</label><input type="number" id="ca-ion" placeholder="80.2" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                        <div><label for="mg-ion" class="block text-sm font-medium text-gray-600">镁离子 Mg²⁺ (mg/L)</label><input type="number" id="mg-ion" placeholder="24.3" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500"></div>
+                    </div>
+                    <div id="optional-cations-container" class="mt-4 space-y-3"></div>
+                    <button id="add-cation-btn" class="mt-4 w-full flex items-center justify-center gap-2 text-sm text-blue-600 font-semibold bg-blue-50 border border-blue-200 py-2 px-4 rounded-lg hover:bg-blue-100 active:scale-95 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>添加阳离子</button>
+                </div>
+                <!-- 阴离子部分 (已修正) -->
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-700 border-b-2 border-pink-200 pb-2 mb-4">阴离子 (Anions)</h2>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-5">
+                        <div><label for="cl-ion" class="block text-sm font-medium text-gray-600">氯离子 Cl⁻ (mg/L)</label><input type="number" id="cl-ion" placeholder="20.0" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-500"></div>
+                        <div><label for="so4-ion" class="block text-sm font-medium text-gray-600">硫酸根 SO₄²⁻ (mg/L)</label><input type="number" id="so4-ion" placeholder="96.0" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-500"></div>
+                        <div><label for="hco3-ion" class="block text-sm font-medium text-gray-600">碳酸氢根 HCO₃⁻ (mg/L)</label><input type="number" id="hco3-ion" placeholder="122.0" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-500"></div>
+                        <div><label for="co3-ion" class="block text-sm font-medium text-gray-600">碳酸根 CO₃²⁻ (mg/L)</label><input type="number" id="co3-ion" placeholder="1.0" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-500"></div>
+                    </div>
+                    <div id="optional-anions-container" class="mt-4 space-y-3"></div>
+                    <button id="add-anion-btn" class="mt-4 w-full flex items-center justify-center gap-2 text-sm text-pink-600 font-semibold bg-pink-50 border border-pink-200 py-2 px-4 rounded-lg hover:bg-pink-100 active:scale-95 transition-all"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>添加阴离子</button>
+                </div>
+            </div>
+             <!-- 其他参数输入 -->
+            <div>
+                 <h2 class="text-xl font-semibold text-gray-700 border-b-2 border-gray-200 pb-2 mb-4">其他水质参数</h2>
+                 <div class="grid grid-cols-1 md:grid-cols-5 gap-x-4 gap-y-5">
+                    <div><label for="tds-measured" class="block text-sm font-medium text-gray-600">TDS 实测值 (mg/L)</label><input type="number" id="tds-measured" placeholder="350" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"></div>
+                    <div><label for="ec-measured" class="block text-sm font-medium text-gray-600">电导率实测值 (μS/cm)</label><input type="number" id="ec-measured" placeholder="550" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"></div>
+                    <div><label for="hardness-measured" class="block text-sm font-medium text-gray-600">总硬度实测值 (mg/L)</label><input type="number" id="hardness-measured" placeholder="250" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"></div>
+                    <div><label for="pb2-fixed" class="block text-sm font-medium text-gray-600">铅离子 Pb²⁺ (mg/L)</label><input type="number" id="pb2-fixed" placeholder="0.5" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"></div>
+                    <div><label for="cro4-fixed" class="block text-sm font-medium text-gray-600">铬酸根 CrO₄²⁻ (mg/L)</label><input type="number" id="cro4-fixed" placeholder="0.3" class="mt-1 block w-full bg-gray-50 border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-2 focus:ring-gray-500"></div>
+                 </div>
+            </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex items-center space-x-4 pt-6 border-t">
+            <button id="calculate-btn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-green-600 active:scale-95 transition-transform">开始计算</button>
+            <button id="reset-btn" class="w-1/3 bg-gray-500 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-gray-600 active:scale-95 transition-transform">重置</button>
+        </div>
+
+        <!-- 结果显示区 -->
+        <div id="result-container" class="hidden pt-4">
+             <h2 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">分析结果</h2>
+             <!-- 各分析模块的结果面板 -->
+             <div id="ion-balance-panel" class="analysis-panel"></div>
+             <div id="tds-ions-panel" class="analysis-panel"></div>
+             <div id="tds-ec-panel" class="analysis-panel"></div>
+             <div id="ec-ions-panel" class="analysis-panel"></div>
+             <div id="hardness-panel" class="analysis-panel"></div>
+             <div id="solubility-panel" class="analysis-panel"></div>
+        </div>
+
+    </div>
+
+<script>
+// 使用IIFE（立即调用函数表达式）来创建独立的作用域，防止变量污染
+(function () {
+    // 确保在DOM加载完成后再执行脚本
+    document.addEventListener('DOMContentLoaded', function () {
+        // 数据定义 (已修正KSP键名)
+        const ionData = {
+            equivalentWeights: { 
+                'k-ion': 39.1, 'na-ion': 23.0, 'ca-ion': 20.04, 'mg-ion': 12.15, 
+                'cl-ion': 35.45, 'so4-ion': 48.03, 'hco3-ion': 61.02, 'co3-ion': 30.005 
+            },
+            optionalCations: { 
+                'fe2': { name: '亚铁离子 (Fe²⁺)', molarMass: 55.845, charge: 2 }, 
+                'fe3': { name: '铁离子 (Fe³⁺)', molarMass: 55.845, charge: 3 }, 
+                'mn2': { name: '锰离子 (Mn²⁺)', molarMass: 54.938, charge: 2 }, 
+                'nh4': { name: '铵根 (NH₄⁺)', molarMass: 18.039, charge: 1 }, 
+                'pb2': { name: '铅离子 (Pb²⁺)', molarMass: 207.2, charge: 2 } 
+            },
+            optionalAnions: { 
+                'f': { name: '氟离子 (F⁻)', molarMass: 18.998, charge: -1 },
+                'no3': { name: '硝酸根 (NO₃⁻)', molarMass: 62.004, charge: -1 }, 
+                'no2': { name: '亚硝酸根 (NO₂⁻)', molarMass: 46.005, charge: -1 }, 
+                'po4': { name: '磷酸根 (PO₄³⁻)', molarMass: 94.971, charge: -3 }, 
+                'cro4': { name: '铬酸根 (CrO₄²⁻)', molarMass: 115.99, charge: -2 } 
+            },
+            ksp: { 'CaCO3': 3.8e-9, 'CaSO4': 2.4e-5, 'PbCrO4': 1.8e-14, 'PbSO4': 1.7e-8 }
+        };
+        
+        // --- DOM元素获取 ---
+        const tabsContainer = document.getElementById('tabs-container');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const addCationBtn = document.getElementById('add-cation-btn');
+        const addAnionBtn = document.getElementById('add-anion-btn');
+        const optionalCationsContainer = document.getElementById('optional-cations-container');
+        const optionalAnionsContainer = document.getElementById('optional-anions-container');
+
+        // --- 结果渲染函数 ---
+        const getEvalTag = (isOk) => isOk ? `<span class="font-bold px-3 py-1 rounded-full bg-green-100 text-green-700">合格</span>` : `<span class="font-bold px-3 py-1 rounded-full bg-red-100 text-red-700">不合格</span>`;
+        
+        const renderResultCard = (panelId, title, results, footer) => {
+            let resultsHtml = results.map(r => `<div class="flex justify-between items-center text-lg"><span class="font-medium text-gray-600">${r.label}</span><span class="font-bold ${r.color || 'text-gray-800'}">${r.value}</span></div>`).join('');
+            const panel = document.getElementById(panelId);
+            if(panel) {
+                panel.innerHTML = `<div class="bg-gray-50 p-6 rounded-xl space-y-4"><h3 class="text-lg font-bold text-gray-800">${title}</h3><div class="space-y-3">${resultsHtml}</div><p class="text-xs text-gray-400 text-center pt-2 border-t mt-4">${footer}</p></div>`;
+            }
+        };
+
+        // --- 计算模块 ---
+        function renderIonBalance(cations, anions) {
+            const total = cations + anions;
+            const error = total > 0 ? ((cations - anions) / total) * 100 : 0;
+            const isOk = Math.abs(error) <= 10;
+            renderResultCard('ion-balance-panel', '阴阳离子平衡分析', [
+                { label: '总阳离子 (meq/L)', value: cations.toFixed(3), color: 'text-blue-600' },
+                { label: '总阴离子 (meq/L)', value: anions.toFixed(3), color: 'text-pink-600' },
+                { label: '相对误差', value: `${error.toFixed(2)}%`},
+                { label: '评价', value: getEvalTag(isOk) }
+            ], '*评价标准: 相对误差在 ±10% 以内视为合格');
+        }
+
+        function renderTdsVsIons(ions, measuredTds) {
+            if (measuredTds <= 0) { renderResultCard('tds-ions-panel', 'TDS & 离子总量', [{label: '请输入TDS实测值', value: ''}], '*'); return; }
+            let calculatedTds = 0;
+            for (const key in ions) { calculatedTds += (key === 'hco3-ion' ? ions[key] * (60 / 122) : ions[key]); }
+            const error = ((calculatedTds / measuredTds) - 1) * 100;
+            const isOk = Math.abs(error) <= 10;
+            renderResultCard('tds-ions-panel', 'TDS & 离子总量', [
+                { label: '离子总量计算值 (mg/L)', value: calculatedTds.toFixed(2) },
+                { label: 'TDS 实测值 (mg/L)', value: measuredTds.toFixed(2) },
+                { label: '相对误差', value: `${error.toFixed(2)}%`},
+                { label: '评价', value: getEvalTag(isOk) }
+            ], '*评价标准: 相对误差在 ±10% 以内视为合格');
+        }
+
+        function renderTdsVsEc(tds, ec) {
+            if (tds <= 0 || ec <= 0) { renderResultCard('tds-ec-panel', 'TDS & 电导率', [{label: '请输入TDS和电导率实测值', value: ''}], '*'); return; }
+            const ratio = tds / ec;
+            const isOk = ratio >= 0.55 && ratio <= 0.70;
+            renderResultCard('tds-ec-panel', 'TDS & 电导率', [
+                { label: '比值 (TDS/EC)', value: ratio.toFixed(3) },
+                { label: '评价', value: getEvalTag(isOk) }
+            ], '*评价标准: 比值在 0.55 ~ 0.70 之间视为合格');
+        }
+
+        function renderEcVsIons(cations, anions, ec) {
+            if (ec <= 0) { renderResultCard('ec-ions-panel', '电导率 & 离子', [{label: '请输入电导率实测值', value: ''}], '*'); return; }
+            
+            const errorCation = ((cations * 100 / ec) - 1) * 100;
+            const cationTag = getEvalTag(Math.abs(errorCation) <= 10);
+            const cationValue = `${errorCation.toFixed(2)}% ${cationTag}`;
+
+            const errorAnion = ((anions * 100 / ec) - 1) * 100;
+            const anionTag = getEvalTag(Math.abs(errorAnion) <= 10);
+            const anionValue = `${errorAnion.toFixed(2)}% ${anionTag}`;
+
+            renderResultCard('ec-ions-panel', '电导率 & 离子', [
+                { label: '阳离子校核误差', value: cationValue },
+                { label: '阴离子校核误差', value: anionValue }
+            ], '*评价标准: 相对误差在 ±10% 以内视为合格');
+        }
+        
+        function renderHardness(ions, measuredHardness) {
+            if (measuredHardness <= 0) { renderResultCard('hardness-panel', '总硬度', [{label: '请输入总硬度实测值', value: ''}], '*'); return; }
+            const ca = ions['ca-ion'] || 0, mg = ions['mg-ion'] || 0, fe3 = ions['fe3'] || 0, mn2 = ions['mn2'] || 0;
+            const calculatedHardness = ((ca / 20) + (mg / 12) + (fe3 / 18.6) + (mn2 / 27.5)) * 50;
+            const error = calculatedHardness > 0 ? ((calculatedHardness / measuredHardness) - 1) * 100 : 0;
+            const isOk = Math.abs(error) <= 10;
+            renderResultCard('hardness-panel', '总硬度', [
+                { label: '硬度计算值 (mg/L)', value: calculatedHardness.toFixed(2) },
+                { label: '硬度实测值 (mg/L)', value: measuredHardness.toFixed(2) },
+                { label: '相对误差', value: `${error.toFixed(2)}%`},
+                { label: '评价', value: getEvalTag(isOk) }
+            ], '*评价标准: 相对误差在 ±10% 以内视为合格');
+        }
+
+        function renderSolubility(ions) {
+            const getMol = (key, dataList) => (ions[key] || 0) / 1000 / dataList[key].molarMass;
+            const caMol = (ions['ca-ion'] || 0) / 1000 / 40.08;
+            const co3Mol = (ions['co3-ion'] || 0) / 1000 / 60.009;
+            const so4Mol = (ions['so4-ion'] || 0) / 1000 / 96.06;
+            const pbMol = getMol('pb2', ionData.optionalCations);
+            const cro4Mol = getMol('cro4', ionData.optionalAnions);
+            const iap_CaCO3 = caMol * co3Mol, iap_CaSO4 = caMol * so4Mol;
+            const iap_PbCrO4 = pbMol * cro4Mol, iap_PbSO4 = pbMol * so4Mol;
+
+            const getStatus = (iap, ksp) => {
+                if (iap === 0) return '数据不足';
+                const ratio = iap / ksp;
+                if (ratio > 1.1) return '过饱和'; if (ratio < 0.9) return '未饱和';
+                return '饱和';
+            };
+            // 使用修正后的键名
+            const status_CaCO3 = getStatus(iap_CaCO3, ionData.ksp.CaCO3);
+            const status_CaSO4 = getStatus(iap_CaSO4, ionData.ksp.CaSO4);
+            const status_PbCrO4 = getStatus(iap_PbCrO4, ionData.ksp.PbCrO4);
+            const status_PbSO4 = getStatus(iap_PbSO4, ionData.ksp.PbSO4);
+
+            const ksp_CaCO3 = ionData.ksp.CaCO3, ksp_CaSO4 = ionData.ksp.CaSO4, ksp_PbCrO4 = ionData.ksp.PbCrO4, ksp_PbSO4 = ionData.ksp.PbSO4;
+            renderResultCard('solubility-panel', '沉淀溶解平衡', [
+                { label: 'CaCO₃', value: `IAP=${iap_CaCO3.toExponential(2)} | Ksp=${ksp_CaCO3.toExponential(2)} (${status_CaCO3})` },
+                { label: 'CaSO₄', value: `IAP=${iap_CaSO4.toExponential(2)} | Ksp=${ksp_CaSO4.toExponential(2)} (${status_CaSO4})` },
+                { label: 'PbCrO₄', value: `IAP=${iap_PbCrO4.toExponential(2)} | Ksp=${ksp_PbCrO4.toExponential(2)} (${status_PbCrO4})` },
+                { label: 'PbSO₄', value: `IAP=${iap_PbSO4.toExponential(2)} | Ksp=${ksp_PbSO4.toExponential(2)} (${status_PbSO4})` },
+            ], '*IAP/Ksp 对比：IAP > Ksp 可能过饱和，IAP < Ksp 可能未饱和');
+        }
+
+        // --- 主计算函数 ---
+        function performCalculations() {
+            const inputs = {};
+            document.querySelectorAll('input[type="number"]').forEach(el => {
+                inputs[el.id] = parseFloat(el.value) || 0;
+            });
+
+            let totalCationsMeq = 0, totalAnionsMeq = 0;
+            const allIonConcentrations = {};
+            
+            for (const ionId in ionData.equivalentWeights) {
+                const conc = inputs[ionId];
+                if (conc > 0) {
+                    allIonConcentrations[ionId] = conc;
+                    const meq = conc / ionData.equivalentWeights[ionId];
+                    if (['k-ion', 'na-ion', 'ca-ion', 'mg-ion'].includes(ionId)) totalCationsMeq += meq;
+                    else totalAnionsMeq += meq;
+                }
+            }
+            
+            const processOptionalIons = (container, dataList, isCation) => {
+                for (const row of container.children) {
+                    const key = row.querySelector('select').value;
+                    const conc = parseFloat(row.querySelector('input').value);
+                    if (key && conc > 0) {
+                        allIonConcentrations[key] = conc;
+                        const ionInfo = dataList[key];
+                        const meq = conc / (ionInfo.molarMass / Math.abs(ionInfo.charge));
+                        if (isCation) totalCationsMeq += meq; else totalAnionsMeq += meq;
+                    }
+                }
+            };
+            processOptionalIons(optionalCationsContainer, ionData.optionalCations, true);
+            processOptionalIons(optionalAnionsContainer, ionData.optionalAnions, false);
+            // 从“其他水质参数”读取Pb²⁺与CrO₄²⁻（用于溶解平衡与离子平衡）
+            const pbFixed = inputs['pb2-fixed'] || 0;
+            if (pbFixed > 0) {
+                allIonConcentrations['pb2'] = pbFixed;
+                const infoPb = ionData.optionalCations['pb2'];
+                totalCationsMeq += pbFixed / (infoPb.molarMass / Math.abs(infoPb.charge));
+            }
+            const cro4Fixed = inputs['cro4-fixed'] || 0;
+            if (cro4Fixed > 0) {
+                allIonConcentrations['cro4'] = cro4Fixed;
+                const infoCrO4 = ionData.optionalAnions['cro4'];
+                totalAnionsMeq += cro4Fixed / (infoCrO4.molarMass / Math.abs(infoCrO4.charge));
+            }
+
+            renderIonBalance(totalCationsMeq, totalAnionsMeq);
+            renderTdsVsIons(allIonConcentrations, inputs['tds-measured']);
+            renderTdsVsEc(inputs['tds-measured'], inputs['ec-measured']);
+            renderEcVsIons(totalCationsMeq, totalAnionsMeq, inputs['ec-measured']);
+            renderHardness(allIonConcentrations, inputs['hardness-measured']);
+            renderSolubility(allIonConcentrations);
+
+            document.getElementById('result-container').classList.remove('hidden');
+            document.getElementById('result-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // --- UI交互与事件绑定 ---
+        function setupUI() {
+            tabsContainer.addEventListener('click', (e) => {
+                return; // 单页模式：禁用标签切换
+            });
+
+            tabsContainer.style.display = 'none';
+            document.querySelectorAll('.analysis-panel').forEach(panel => panel.classList.add('active'));
+
+            resetBtn.addEventListener('click', () => {
+                document.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+                optionalCationsContainer.innerHTML = '';
+                optionalAnionsContainer.innerHTML = '';
+                document.getElementById('result-container').classList.add('hidden');
+                document.querySelectorAll('.analysis-panel').forEach(p => p.innerHTML = '');
+            });
+
+            const addOptionalIonRow = (container, ionDataList, type) => {
+                const ionId = `optional-${Date.now()}`;
+                let optionsHtml = '<option value="">-- 选择 --</option>';
+                for (const key in ionDataList) { optionsHtml += `<option value="${key}">${ionDataList[key].name}</option>`; }
+                const focusColor = type === 'cation' ? 'focus:ring-blue-500' : 'focus:ring-pink-500';
+                const newRow = document.createElement('div');
+                newRow.id = ionId;
+                newRow.className = 'new-row grid grid-cols-[1fr,1fr,auto] gap-2 items-center';
+                newRow.innerHTML = `
+                    <select class="block w-full text-sm border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-1 ${focusColor}">${optionsHtml}</select>
+                    <input type="number" placeholder="浓度(mg/L)" class="block w-full text-sm border-gray-300 rounded-md py-2 px-3 shadow-sm focus:outline-none focus:ring-1 ${focusColor}">
+                    <button class="h-9 w-9 flex items-center justify-center text-gray-500 hover:bg-red-100 hover:text-red-600 rounded-md transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                `;
+                newRow.querySelector('button').addEventListener('click', () => newRow.remove());
+                container.appendChild(newRow);
+            };
+
+            addCationBtn.addEventListener('click', () => addOptionalIonRow(optionalCationsContainer, ionData.optionalCations, 'cation'));
+            addAnionBtn.addEventListener('click', () => addOptionalIonRow(optionalAnionsContainer, ionData.optionalAnions, 'anion'));
+            
+            calculateBtn.addEventListener('click', performCalculations);
+        }
+
+        // 初始化UI和事件绑定
+        setupUI();
+    });
+})();
+</script>
+</body>
+</html>
+
