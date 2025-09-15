@@ -33,15 +33,15 @@ const equivalentWeights: Record<string, number> = {
 type IonOption = { key: string; name: string; molarMass: number; charge: number };
 
 const optionalCations: Record<string, IonOption> = {
-  fe2: { key: 'fe2', name: '亚铁离子 (Fe²⁺)', molarMass: 55.845, charge: 2 },
-  fe3: { key: 'fe3', name: '铁离子 (Fe³⁺)', molarMass: 55.845, charge: 3 },
-  mn2: { key: 'mn2', name: '锰离子 (Mn²⁺)', molarMass: 54.938, charge: 2 },
-  nh4: { key: 'nh4', name: '铵根 (NH₄⁺)', molarMass: 18.039, charge: 1 },
-  pb2: { key: 'pb2', name: '铅离子 (Pb²⁺)', molarMass: 207.2, charge: 2 },
+  fe2: { key: 'fe2', name: '亚铁 (Fe²⁺)', molarMass: 55.845, charge: 2 },
+  fe3: { key: 'fe3', name: '铁(III) (Fe³⁺)', molarMass: 55.845, charge: 3 },
+  mn2: { key: 'mn2', name: '锰 (Mn²⁺)', molarMass: 54.938, charge: 2 },
+  nh4: { key: 'nh4', name: '铵 (NH₄⁺)', molarMass: 18.039, charge: 1 },
+  pb2: { key: 'pb2', name: '铅 (Pb²⁺)', molarMass: 207.2, charge: 2 },
 };
 
 const optionalAnions: Record<string, IonOption> = {
-  f: { key: 'f', name: '氟离子 (F⁻)', molarMass: 18.998, charge: -1 },
+  f: { key: 'f', name: '氟 (F⁻)', molarMass: 18.998, charge: -1 },
   no3: { key: 'no3', name: '硝酸根 (NO₃⁻)', molarMass: 62.004, charge: -1 },
   no2: { key: 'no2', name: '亚硝酸根 (NO₂⁻)', molarMass: 46.005, charge: -1 },
   po4: { key: 'po4', name: '磷酸根 (PO₄³⁻)', molarMass: 94.971, charge: -3 },
@@ -224,15 +224,39 @@ export default function WaterQualityQCPage() {
 
       <div className="bg-gray-100" style={{ padding: 16, borderRadius: 8 }}>
         <Title2 style={{ fontSize: 16, marginBottom: 8 }}>基础离子 (mg/L)</Title2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 }}>
-          <div><Label>K⁺</Label><Input type="text" inputMode="decimal" value={k} onChange={e=>setK((e.target as HTMLInputElement).value)} placeholder="例如 2.5" /></div>
-          <div><Label>Na⁺</Label><Input type="text" inputMode="decimal" value={na} onChange={e=>setNa((e.target as HTMLInputElement).value)} placeholder="例如 15.0" /></div>
-          <div><Label>Ca²⁺</Label><Input type="text" inputMode="decimal" value={ca} onChange={e=>setCa((e.target as HTMLInputElement).value)} placeholder="例如 80.2" /></div>
-          <div><Label>Mg²⁺</Label><Input type="text" inputMode="decimal" value={mg} onChange={e=>setMg((e.target as HTMLInputElement).value)} placeholder="例如 24.3" /></div>
-          <div><Label>Cl⁻</Label><Input type="text" inputMode="decimal" value={cl} onChange={e=>setCl((e.target as HTMLInputElement).value)} placeholder="例如 20.0" /></div>
-          <div><Label>SO₄²⁻</Label><Input type="text" inputMode="decimal" value={so4} onChange={e=>setSo4((e.target as HTMLInputElement).value)} placeholder="例如 96.0" /></div>
-          <div><Label>HCO₃⁻</Label><Input type="text" inputMode="decimal" value={hco3} onChange={e=>setHco3((e.target as HTMLInputElement).value)} placeholder="例如 122.0" /></div>
-          <div><Label>CO₃²⁻</Label><Input type="text" inputMode="decimal" value={co3} onChange={e=>setCo3((e.target as HTMLInputElement).value)} placeholder="例如 1.0" /></div>
+        <div className="ionGrid">
+          <div>
+            <div className="labelBox"><Label>钾 K⁺</Label></div>
+            <Input type="text" inputMode="decimal" value={k} onChange={e=>setK((e.target as HTMLInputElement).value)} placeholder="例如 2.5" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>钠 Na⁺</Label></div>
+            <Input type="text" inputMode="decimal" value={na} onChange={e=>setNa((e.target as HTMLInputElement).value)} placeholder="例如 15.0" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>钙 Ca²⁺</Label></div>
+            <Input type="text" inputMode="decimal" value={ca} onChange={e=>setCa((e.target as HTMLInputElement).value)} placeholder="例如 80.2" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>镁 Mg²⁺</Label></div>
+            <Input type="text" inputMode="decimal" value={mg} onChange={e=>setMg((e.target as HTMLInputElement).value)} placeholder="例如 24.3" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>氯 Cl⁻</Label></div>
+            <Input type="text" inputMode="decimal" value={cl} onChange={e=>setCl((e.target as HTMLInputElement).value)} placeholder="例如 20.0" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>硫酸根 SO₄²⁻</Label></div>
+            <Input type="text" inputMode="decimal" value={so4} onChange={e=>setSo4((e.target as HTMLInputElement).value)} placeholder="例如 96.0" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>碳酸氢根 HCO₃⁻</Label></div>
+            <Input type="text" inputMode="decimal" value={hco3} onChange={e=>setHco3((e.target as HTMLInputElement).value)} placeholder="例如 122.0" />
+          </div>
+          <div>
+            <div className="labelBox"><Label>碳酸根 CO₃²⁻</Label></div>
+            <Input type="text" inputMode="decimal" value={co3} onChange={e=>setCo3((e.target as HTMLInputElement).value)} placeholder="例如 1.0" />
+          </div>
         </div>
       </div>
 
@@ -241,7 +265,7 @@ export default function WaterQualityQCPage() {
           <Title2 style={{ fontSize: 16, marginBottom: 8 }}>可选阳离子</Title2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {optCations.map((row, idx) => (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+              <div key={row.id} className="optionalRow">
                 <select value={row.key} onChange={e=>setOptCations(prev=>prev.map(r=>r.id===row.id?{...r,key:e.target.value}:r))} style={{ height: 32, borderRadius: 4 }}>
                   <option value="">-- 选择 --</option>
                   {Object.values(optionalCations).map(opt=> (
@@ -260,7 +284,7 @@ export default function WaterQualityQCPage() {
           <Title2 style={{ fontSize: 16, marginBottom: 8 }}>可选阴离子</Title2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {optAnions.map((row) => (
-              <div key={row.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 8, alignItems: 'center' }}>
+              <div key={row.id} className="optionalRow">
                 <select value={row.key} onChange={e=>setOptAnions(prev=>prev.map(r=>r.id===row.id?{...r,key:e.target.value}:r))} style={{ height: 32, borderRadius: 4 }}>
                   <option value="">-- 选择 --</option>
                   {Object.values(optionalAnions).map(opt=> (
@@ -320,6 +344,15 @@ export default function WaterQualityQCPage() {
 
             <Card style={{ padding: 12 }}>
               <Title2 style={{ fontSize: 16, marginBottom: 6 }}>电导率 & 离子</Title2>
+      <style jsx>{`
+        .ionGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+        @media (max-width: 900px) { .ionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (max-width: 520px) { .ionGrid { grid-template-columns: 1fr; } }
+        .labelBox { min-height: 24px; display: flex; align-items: center; white-space: nowrap; }
+        .optionalRow { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) auto; gap: 8px; align-items: center; }
+        @media (max-width: 600px) { .optionalRow { grid-template-columns: 1fr; } }
+      `}</style>
+
               <Body1>阳离子校核误差：{ecVsIons.errorC.toFixed(2)}%</Body1>
               <Body1>阴离子校核误差：{ecVsIons.errorA.toFixed(2)}%</Body1>
               <Body1>评价：{ecVsIons.okC && ecVsIons.okA ? '合格' : '不合格'}</Body1>
