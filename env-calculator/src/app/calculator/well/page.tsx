@@ -21,24 +21,23 @@ const useStyles = makeStyles({
 
 export default function WellCalculatorPage() {
   const styles = useStyles();
-  const [B, setB] = useState<number | "">("");  // m
-  const [C, setC] = useState<number | "">("");  // cm
-  const [D, setD] = useState<number | "">("");  // m
-  const [E, setE] = useState<number | "">(""); // m
-  const [F, setF] = useState<number | "">("");  // cm
-  const [G, setG] = useState<number | "">(""); // porosity (0~1)
+  const [B, setB] = useState<string>("");  // m
+  const [C, setC] = useState<string>("");  // cm
+  const [D, setD] = useState<string>("");  // m
+  const [E, setE] = useState<string>(""); // m
+  const [F, setF] = useState<string>("");  // cm
+  const [G, setG] = useState<string>(""); // porosity (0~1)
 
-  const inputsValid = useMemo(() => [B, C, D, E, F].every(v => typeof v === 'number'), [B, C, D, E, F]);
   const result = useMemo(() => {
-    if (!inputsValid) return null;
-    const b = B as number;
-    const c = C as number;
-    const d = D as number;
-    const e = E as number;
-    const f = F as number;
-    const g = typeof G === "number" ? G : undefined;
+    const b = B === '' ? NaN : parseFloat(B.replace(',','.'));
+    const c = C === '' ? NaN : parseFloat(C.replace(',','.'));
+    const d = D === '' ? NaN : parseFloat(D.replace(',','.'));
+    const e = E === '' ? NaN : parseFloat(E.replace(',','.'));
+    const f = F === '' ? NaN : parseFloat(F.replace(',','.'));
+    const g = G === '' ? undefined : (isNaN(parseFloat(G.replace(',', '.'))) ? undefined : parseFloat(G.replace(',', '.')));
+    if ([b,c,d,e,f].some(x => Number.isNaN(x))) return null;
     return computeWell({ B_depth_m: b, C_id_cm: c, D_waterLevel_m: d, E_headToGround_m: e, F_enlarge_cm: f, G_porosity: g });
-  }, [inputsValid, B, C, D, E, F, G]);
+  }, [B, C, D, E, F, G]);
 
   return (
     <div className="page-container">
@@ -48,27 +47,27 @@ export default function WellCalculatorPage() {
         <div className={styles.grid}>
           <div className={styles.field}>
             <Label required>建井深度 B (m)</Label>
-            <Input type="number" step={0.1} value={B === "" ? "" : String(B)} onChange={e => setB((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={B} onChange={e => setB((e.target as HTMLInputElement).value)} />
           </div>
           <div className={styles.field}>
             <Label required>井管内径 C (cm)</Label>
-            <Input type="number" step={0.1} value={C === "" ? "" : String(C)} onChange={e => setC((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={C} onChange={e => setC((e.target as HTMLInputElement).value)} />
           </div>
           <div className={styles.field}>
             <Label required>水位 D (m)</Label>
-            <Input type="number" step={0.1} value={D === "" ? "" : String(D)} onChange={e => setD((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={D} onChange={e => setD((e.target as HTMLInputElement).value)} />
           </div>
           <div className={styles.field}>
             <Label required>井口至地面高度 E (m)</Label>
-            <Input type="number" step={0.1} value={E === "" ? "" : String(E)} onChange={e => setE((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={E} onChange={e => setE((e.target as HTMLInputElement).value)} />
           </div>
           <div className={styles.field}>
             <Label required>扩孔直径 F (cm)</Label>
-            <Input type="number" step={0.1} value={F === "" ? "" : String(F)} onChange={e => setF((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={F} onChange={e => setF((e.target as HTMLInputElement).value)} />
           </div>
           <div className={styles.field}>
             <Label>填料孔隙度 G (0~1)</Label>
-            <Input type="number" step={0.01} min={0} max={1} value={G === "" ? "" : String(G)} onChange={e => setG((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={G} onChange={e => setG((e.target as HTMLInputElement).value)} />
             <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
               若不填，体积结果按Excel规则留空
             </Text>

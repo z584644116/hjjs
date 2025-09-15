@@ -20,14 +20,14 @@ const useStyles = makeStyles({
 
 export default function DOCalculatorPage() {
   const styles = useStyles();
-  const [pressure, setPressure] = useState<number | "">("");
-  const [temperature, setTemperature] = useState<number | "">("");
+  const [pressureStr, setPressureStr] = useState<string>("");
+  const [temperatureStr, setTemperatureStr] = useState<string>("");
 
   const result = useMemo(() => {
-    const p = typeof pressure === "number" ? pressure : NaN;
-    const t = typeof temperature === "number" ? temperature : NaN;
+    const p = pressureStr === "" ? NaN : parseFloat(pressureStr.replace(",","."));
+    const t = temperatureStr === "" ? NaN : parseFloat(temperatureStr.replace(",","."));
     return computeDO(p, t);
-  }, [pressure, temperature]);
+  }, [pressureStr, temperatureStr]);
 
   return (
     <div className="page-container">
@@ -38,13 +38,10 @@ export default function DOCalculatorPage() {
           <div className={styles.field}>
             <Label required>大气压 (kPa)</Label>
             <Input
-              type="number"
-              value={pressure === "" ? "" : String(pressure)}
-              onChange={(e) => {
-                const v = (e.target as HTMLInputElement).value;
-                setPressure(v === "" ? "" : Number(v));
-              }}
-              step={0.001}
+              type="text"
+              inputMode="decimal"
+              value={pressureStr}
+              onChange={(e) => setPressureStr((e.target as HTMLInputElement).value)}
               placeholder="例如 101.325"
             />
             <Text size={200}>
@@ -55,13 +52,10 @@ export default function DOCalculatorPage() {
           <div className={styles.field}>
             <Label required>温度 (℃)</Label>
             <Input
-              type="number"
-              value={temperature === "" ? "" : String(temperature)}
-              onChange={(e) => {
-                const v = (e.target as HTMLInputElement).value;
-                setTemperature(v === "" ? "" : Number(v));
-              }}
-              step={0.1}
+              type="text"
+              inputMode="decimal"
+              value={temperatureStr}
+              onChange={(e) => setTemperatureStr((e.target as HTMLInputElement).value)}
               placeholder="0 ~ 40"
             />
             <Text size={200}>范围：0 ~ 40 ℃</Text>

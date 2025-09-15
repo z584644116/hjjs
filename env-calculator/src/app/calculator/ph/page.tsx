@@ -17,12 +17,12 @@ const useStyles = makeStyles({
 
 export default function PHCalculatorPage() {
   const styles = useStyles();
-  const [temperature, setTemperature] = useState<number | "">("");
+  const [temperatureStr, setTemperatureStr] = useState<string>("");
 
   const result = useMemo(() => {
-    const t = typeof temperature === "number" ? temperature : NaN;
+    const t = temperatureStr === "" ? NaN : parseFloat(temperatureStr.replace(",","."));
     return computePHStandardValues(t);
-  }, [temperature]);
+  }, [temperatureStr]);
 
   return (
     <div className="page-container">
@@ -33,13 +33,10 @@ export default function PHCalculatorPage() {
           <div className={styles.field}>
             <Label required>温度 (℃)</Label>
             <Input
-              type="number"
-              value={temperature === "" ? "" : String(temperature)}
-              onChange={(e) => {
-                const v = (e.target as HTMLInputElement).value;
-                setTemperature(v === "" ? "" : Number(v));
-              }}
-              step={0.1}
+              type="text"
+              inputMode="decimal"
+              value={temperatureStr}
+              onChange={(e) => setTemperatureStr((e.target as HTMLInputElement).value)}
               placeholder="例如 25"
             />
           </div>

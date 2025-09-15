@@ -62,12 +62,12 @@ export default function UnorganizedSuitabilityPage() {
   const [totalCloud, setTotalCloud] = useState<number | "">("");
   const [lowCloud, setLowCloud] = useState<number | "">("");
   const [windSpeedType, setWindSpeedType] = useState<'custom'|'10m'>('custom');
-  const [windSpeedHeight, setWindSpeedHeight] = useState<number | "">(2);
+  const [windSpeedHeightStr, setWindSpeedHeightStr] = useState<string>("2");
   const [terrain, setTerrain] = useState<'city'|'countryside'>('city');
 
   // 连续读数（10次）
-  const [dirs, setDirs] = useState<(number|"")[]>(Array(10).fill(""));
-  const [speeds, setSpeeds] = useState<(number|"")[]>(Array(10).fill(""));
+  const [dirs, setDirs] = useState<string[]>(Array(10).fill(""));
+  const [speeds, setSpeeds] = useState<string[]>(Array(10).fill(""));
 
   // GPS定位
   const [gpsLoading, setGpsLoading] = useState(false);
@@ -151,8 +151,14 @@ export default function UnorganizedSuitabilityPage() {
     for (let i = 0; i < 10; i++) {
       const dv = dirs[i];
       const sv = speeds[i];
-      if (typeof dv === 'number') dirVals.push(dv);
-      if (typeof sv === 'number') speedVals.push(sv);
+      if (dv !== '') {
+        const parsed = parseFloat(dv.replace(',', '.'));
+        if (!Number.isNaN(parsed)) dirVals.push(parsed);
+      }
+      if (sv !== '') {
+        const parsedS = parseFloat(sv.replace(',', '.'));
+        if (!Number.isNaN(parsedS)) speedVals.push(parsedS);
+      }
     }
     if (speedVals.length === 0) {
       setError("请至少输入一次有效的风速读数");
@@ -162,7 +168,8 @@ export default function UnorganizedSuitabilityPage() {
     const measuredWindSpeed = speedVals.reduce((a, b) => a + b, 0) / speedVals.length;
 
     const solar = calculateSolarParams(dateISO, timeHHmm, latNum, lonNum, totalCloud, lowCloud);
-    const stab = calculateStability(measuredWindSpeed, solar.radiationLevel, windSpeedType, typeof windSpeedHeight === 'number' ? windSpeedHeight : undefined, terrain);
+    const heightNum = windSpeedHeightStr === '' ? undefined : (isNaN(parseFloat(windSpeedHeightStr.replace(',', '.'))) ? undefined : parseFloat(windSpeedHeightStr.replace(',', '.')));
+    const stab = calculateStability(measuredWindSpeed, solar.radiationLevel, windSpeedType, heightNum, terrain);
     const merged = { ...solar, ...stab };
     setStability({ ...merged });
 
@@ -237,7 +244,7 @@ export default function UnorganizedSuitabilityPage() {
               <>
                 <div className={styles.field}>
                   <Label required>风速测定高度 (m)</Label>
-                  <Input type="number" step={0.1} value={windSpeedHeight === '' ? '' : String(windSpeedHeight)} onChange={e => setWindSpeedHeight((e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value))} />
+                  <Input type="text" inputMode="decimal" value={windSpeedHeightStr} onChange={e => setWindSpeedHeightStr((e.target as HTMLInputElement).value)} />
                 </div>
                 <div className={styles.field}>
                   <Label required>下垫面类型</Label>
@@ -259,12 +266,12 @@ export default function UnorganizedSuitabilityPage() {
               <div key={i} className={styles.readingItem}>
                 <Label>第 {i + 1} 次</Label>
                 <div className={styles.pairRow}>
-                  <Input type="number" step={0.1} placeholder="风向°" value={dirs[i] === '' ? '' : String(dirs[i])}
+                  <Input type="text" inputMode="decimal" placeholder="风向°" value={dirs[i]}
                     style={{ flex: 1, minWidth: 0 }}
-                    onChange={e => setDirs(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value); return arr; })} />
-                  <Input type="number" step={0.1} placeholder="风速m/s" value={speeds[i] === '' ? '' : String(speeds[i])}
+                    onChange={e => setDirs(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value; return arr; })} />
+                  <Input type="text" inputMode="decimal" placeholder="风速m/s" value={speeds[i]}
                     style={{ flex: 1, minWidth: 0 }}
-                    onChange={e => setSpeeds(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value === '' ? '' : Number((e.target as HTMLInputElement).value); return arr; })} />
+                    onChange={e => setSpeeds(prev => { const arr = [...prev]; arr[i] = (e.target as HTMLInputElement).value; return arr; })} />
                 </div>
               </div>
             ))}

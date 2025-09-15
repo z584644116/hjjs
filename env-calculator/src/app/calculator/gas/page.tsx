@@ -22,21 +22,21 @@ const useStyles = makeStyles({
 export default function GasConverterPage() {
   const styles = useStyles();
   const [gas, setGas] = useState<GasKey>("SO2");
-  const [temperatureC, setTemperatureC] = useState<number | "">(0);
-  const [pressureKPa, setPressureKPa] = useState<number | "">(101.325);
-  const [inputValue, setInputValue] = useState<number | "">("");
+  const [temperatureStr, setTemperatureStr] = useState<string>("0");
+  const [pressureStr, setPressureStr] = useState<string>("101.325");
+  const [inputStr, setInputStr] = useState<string>("");
   const [inputUnit, setInputUnit] = useState<'ppm' | 'mg/m3'>("ppm");
 
   const result = useMemo(() => {
-    const t = typeof temperatureC === "number" ? temperatureC : NaN;
-    const p = typeof pressureKPa === "number" ? pressureKPa : NaN;
-    const v = typeof inputValue === "number" ? inputValue : NaN;
+    const t = temperatureStr === "" ? NaN : parseFloat(temperatureStr.replace(",","."));
+    const p = pressureStr === "" ? NaN : parseFloat(pressureStr.replace(",","."));
+    const v = inputStr === "" ? NaN : parseFloat(inputStr.replace(",","."));
     try {
       return convertGasUnits({ gas, inputValue: v, inputUnit, temperatureC: t, pressureKPa: p, decimals: 2 });
     } catch (e) {
       return null;
     }
-  }, [gas, temperatureC, pressureKPa, inputValue, inputUnit]);
+  }, [gas, temperatureStr, pressureStr, inputStr, inputUnit]);
 
   return (
     <div className="page-container">
@@ -64,20 +64,20 @@ export default function GasConverterPage() {
 
           <div className={styles.field}>
             <Label required>温度 (℃)</Label>
-            <Input type="number" step={0.1} value={temperatureC === "" ? "" : String(temperatureC)}
-              onChange={e => setTemperatureC((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={temperatureStr}
+              onChange={e => setTemperatureStr((e.target as HTMLInputElement).value)} />
           </div>
 
           <div className={styles.field}>
             <Label required>大气压 (kPa)</Label>
-            <Input type="number" step={0.1} value={pressureKPa === "" ? "" : String(pressureKPa)}
-              onChange={e => setPressureKPa((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={pressureStr}
+              onChange={e => setPressureStr((e.target as HTMLInputElement).value)} />
           </div>
 
           <div className={styles.field}>
             <Label required>输入浓度</Label>
-            <Input type="number" step={0.001} value={inputValue === "" ? "" : String(inputValue)}
-              onChange={e => setInputValue((e.target as HTMLInputElement).value === "" ? "" : Number((e.target as HTMLInputElement).value))} />
+            <Input type="text" inputMode="decimal" value={inputStr}
+              onChange={e => setInputStr((e.target as HTMLInputElement).value)} />
           </div>
 
           <div className={styles.field}>
@@ -108,8 +108,8 @@ export default function GasConverterPage() {
 
           <Card style={{ padding: 12 }}>
             <Title2 style={{ fontSize: 16, marginBottom: 6 }}>参数</Title2>
-            <Body1>温度：{typeof temperatureC === 'number' ? `${temperatureC.toFixed(1)} ℃` : "--"}</Body1>
-            <Body1>压力：{typeof pressureKPa === 'number' ? `${pressureKPa.toFixed(3)} kPa` : "--"}</Body1>
+            <Body1>温度：{temperatureStr === '' || isNaN(parseFloat(temperatureStr.replace(',','.'))) ? "--" : `${parseFloat(temperatureStr.replace(',','.')).toFixed(1)} ℃`}</Body1>
+            <Body1>压力：{pressureStr === '' || isNaN(parseFloat(pressureStr.replace(',','.'))) ? "--" : `${parseFloat(pressureStr.replace(',','.')).toFixed(3)} kPa`}</Body1>
             <Body1>分子量：{GAS_LIST.find(g => g.key === gas)?.molarMass_g_mol.toFixed(3)} g/mol</Body1>
           </Card>
         </div>
