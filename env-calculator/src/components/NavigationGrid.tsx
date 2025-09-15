@@ -90,12 +90,13 @@ export default function NavigationGrid() {
             key={item.id}
             style={{
               padding: '24px',
-              height: '180px',
+              minHeight: '200px',
               display: 'flex',
               flexDirection: 'column',
               cursor: item.available ? 'pointer' : 'not-allowed',
               opacity: item.available ? 1 : 0.6,
               transition: 'all 0.2s ease',
+              overflow: 'visible',
             }}
           >
             <div 

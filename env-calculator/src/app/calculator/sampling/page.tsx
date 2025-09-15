@@ -240,7 +240,7 @@ export default function SamplingCalculatorPage() {
 
             <div>
               <Label style={{ marginBottom: '8px', display: 'block' }}>
-                可选嘴径规格 ({samplingType === 'normal' ? '普通颗粒物' : '低浓度颗粒物'})
+                系统库嘴径规格
               </Label>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 {result.availableDiameters.map((diameter) => (
