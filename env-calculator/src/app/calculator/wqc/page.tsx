@@ -225,36 +225,36 @@ export default function WaterQualityQCPage() {
       <div className="bg-gray-100" style={{ padding: 16, borderRadius: 8 }}>
         <Title2 style={{ fontSize: 16, marginBottom: 8 }}>基础离子 (mg/L)</Title2>
         <div className="ionGrid">
-          <div>
-            <div className="labelBox"><Label>钾 K⁺</Label></div>
+          <div className="ionRow">
+            <Label>钾 K⁺</Label>
             <Input type="text" inputMode="decimal" value={k} onChange={e=>setK((e.target as HTMLInputElement).value)} placeholder="例如 2.5" />
           </div>
-          <div>
-            <div className="labelBox"><Label>钠 Na⁺</Label></div>
+          <div className="ionRow">
+            <Label>钠 Na⁺</Label>
             <Input type="text" inputMode="decimal" value={na} onChange={e=>setNa((e.target as HTMLInputElement).value)} placeholder="例如 15.0" />
           </div>
-          <div>
-            <div className="labelBox"><Label>钙 Ca²⁺</Label></div>
+          <div className="ionRow">
+            <Label>钙 Ca²⁺</Label>
             <Input type="text" inputMode="decimal" value={ca} onChange={e=>setCa((e.target as HTMLInputElement).value)} placeholder="例如 80.2" />
           </div>
-          <div>
-            <div className="labelBox"><Label>镁 Mg²⁺</Label></div>
+          <div className="ionRow">
+            <Label>镁 Mg²⁺</Label>
             <Input type="text" inputMode="decimal" value={mg} onChange={e=>setMg((e.target as HTMLInputElement).value)} placeholder="例如 24.3" />
           </div>
-          <div>
-            <div className="labelBox"><Label>氯 Cl⁻</Label></div>
+          <div className="ionRow">
+            <Label>氯 Cl⁻</Label>
             <Input type="text" inputMode="decimal" value={cl} onChange={e=>setCl((e.target as HTMLInputElement).value)} placeholder="例如 20.0" />
           </div>
-          <div>
-            <div className="labelBox"><Label>硫酸根 SO₄²⁻</Label></div>
+          <div className="ionRow">
+            <Label>硫酸根 SO₄²⁻</Label>
             <Input type="text" inputMode="decimal" value={so4} onChange={e=>setSo4((e.target as HTMLInputElement).value)} placeholder="例如 96.0" />
           </div>
-          <div>
-            <div className="labelBox"><Label>碳酸氢根 HCO₃⁻</Label></div>
+          <div className="ionRow">
+            <Label>碳酸氢根 HCO₃⁻</Label>
             <Input type="text" inputMode="decimal" value={hco3} onChange={e=>setHco3((e.target as HTMLInputElement).value)} placeholder="例如 122.0" />
           </div>
-          <div>
-            <div className="labelBox"><Label>碳酸根 CO₃²⁻</Label></div>
+          <div className="ionRow">
+            <Label>碳酸根 CO₃²⁻</Label>
             <Input type="text" inputMode="decimal" value={co3} onChange={e=>setCo3((e.target as HTMLInputElement).value)} placeholder="例如 1.0" />
           </div>
         </div>
@@ -346,9 +346,10 @@ export default function WaterQualityQCPage() {
               <Title2 style={{ fontSize: 16, marginBottom: 6 }}>电导率 & 离子</Title2>
       <style jsx>{`
         .ionGrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
-        @media (max-width: 900px) { .ionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-        @media (max-width: 520px) { .ionGrid { grid-template-columns: 1fr; } }
-        .labelBox { min-height: 24px; display: flex; align-items: center; white-space: nowrap; }
+        @media (max-width: 768px) { .ionGrid { grid-template-columns: 1fr; } }
+        .ionRow { display: flex; align-items: center; gap: 8px; }
+        .ionRow label { min-width: 120px; white-space: nowrap; flex-shrink: 0; }
+        .ionRow input { flex: 1; }
         .optionalRow { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) auto; gap: 8px; align-items: center; }
         @media (max-width: 600px) { .optionalRow { grid-template-columns: 1fr; } }
       `}</style>
