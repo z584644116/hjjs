@@ -73,8 +73,6 @@ export default function WaterQualityQCPage() {
   const [tdsMeasured, setTdsMeasured] = useState('');
   const [ecMeasured, setEcMeasured] = useState('');
   const [hardnessMeasured, setHardnessMeasured] = useState('');
-  const [pbFixed, setPbFixed] = useState(''); // Pb2+ (mg/L)
-  const [cro4Fixed, setCro4Fixed] = useState(''); // CrO4^2- (mg/L)
 
   const [showResult, setShowResult] = useState(false);
 
@@ -102,17 +100,6 @@ export default function WaterQualityQCPage() {
       aOpt += meq;
     });
 
-    // fixed from other params panel (Pb2+, CrO4^2-)
-    const pb2 = parseNum(pbFixed);
-    if (pb2 > 0) {
-      const infoPb = optionalCations.pb2; // exists
-      cOpt += pb2 / (infoPb.molarMass / Math.abs(infoPb.charge));
-    }
-    const cro4 = parseNum(cro4Fixed);
-    if (cro4 > 0) {
-      const infoCr = optionalAnions.cro4; // exists
-      aOpt += cro4 / (infoCr.molarMass / Math.abs(infoCr.charge));
-    }
 
     const totalC = cationsMeq + cOpt;
     const totalA = anionsMeq + aOpt;
@@ -121,7 +108,7 @@ export default function WaterQualityQCPage() {
     const ok = Math.abs(error) <= 10;
 
     return { totalC, totalA, error, ok };
-  }, [k,na,ca,mg,cl,so4,hco3,co3,optCations,optAnions,pbFixed,cro4Fixed]);
+  }, [k,na,ca,mg,cl,so4,hco3,co3,optCations,optAnions]);
 
   const tdsVsIons = useMemo(() => {
     const tds = parseNum(tdsMeasured);
@@ -132,8 +119,6 @@ export default function WaterQualityQCPage() {
     // optional add to ions map
     optCations.forEach(r => { const v = parseNum(r.conc); if (r.key && v>0) ions[r.key] = (ions[r.key]||0) + v; });
     optAnions.forEach(r => { const v = parseNum(r.conc); if (r.key && v>0) ions[r.key] = (ions[r.key]||0) + v; });
-    const pb2 = parseNum(pbFixed); if (pb2>0) ions['pb2'] = (ions['pb2']||0)+pb2;
-    const cro4 = parseNum(cro4Fixed); if (cro4>0) ions['cro4'] = (ions['cro4']||0)+cro4;
 
     let calculatedTds = 0;
     for (const key in ions) {
@@ -142,7 +127,7 @@ export default function WaterQualityQCPage() {
     const error = tds>0 ? ((calculatedTds/tds)-1)*100 : 0;
     const ok = Math.abs(error) <= 10;
     return { calculatedTds, tds, error, ok };
-  }, [k,na,ca,mg,cl,so4,hco3,co3,optCations,optAnions,pbFixed,cro4Fixed,tdsMeasured]);
+  }, [k,na,ca,mg,cl,so4,hco3,co3,optCations,optAnions,tdsMeasured]);
 
   const tdsVsEc = useMemo(() => {
     const tds = parseNum(tdsMeasured); const ec = parseNum(ecMeasured);
@@ -175,8 +160,11 @@ export default function WaterQualityQCPage() {
     const caMol = parseNum(ca)/1000/40.08;
     const co3Mol = parseNum(co3)/1000/60.009;
     const so4Mol = parseNum(so4)/1000/96.06;
-    const pbMol = parseNum(pbFixed)/1000/optionalCations.pb2.molarMass;
-    const cro4Mol = parseNum(cro4Fixed)/1000/optionalAnions.cro4.molarMass;
+    // sum Pb²⁺ and CrO₄²⁻ from optional ions (mg/L -> mol/L)
+    let pbMgL = 0; optCations.forEach(r=>{ const v=parseNum(r.conc); if (r.key==='pb2' && v>0) pbMgL += v; });
+    let cro4MgL = 0; optAnions.forEach(r=>{ const v=parseNum(r.conc); if (r.key==='cro4' && v>0) cro4MgL += v; });
+    const pbMol = pbMgL/1000/optionalCations.pb2.molarMass;
+    const cro4Mol = cro4MgL/1000/optionalAnions.cro4.molarMass;
 
     const iap_CaCO3 = caMol*co3Mol;
     const iap_CaSO4 = caMol*so4Mol;
@@ -194,12 +182,12 @@ export default function WaterQualityQCPage() {
       PbCrO4: { iap: iap_PbCrO4, ksp: KSP.PbCrO4, status: status(iap_PbCrO4, KSP.PbCrO4) },
       PbSO4: { iap: iap_PbSO4, ksp: KSP.PbSO4, status: status(iap_PbSO4, KSP.PbSO4) },
     };
-  }, [ca, co3, so4, pbFixed, cro4Fixed]);
+  }, [ca, co3, so4, optCations, optAnions]);
 
   const resetAll = () => {
     setK(''); setNa(''); setCa(''); setMg(''); setCl(''); setSo4(''); setHco3(''); setCo3('');
     setOptCations([]); setOptAnions([]);
-    setTdsMeasured(''); setEcMeasured(''); setHardnessMeasured(''); setPbFixed(''); setCro4Fixed('');
+    setTdsMeasured(''); setEcMeasured(''); setHardnessMeasured('');
     setShowResult(false);
   };
 
@@ -282,13 +270,15 @@ export default function WaterQualityQCPage() {
           <div><Label>TDS 实测 (mg/L)</Label><Input type="text" inputMode="decimal" value={tdsMeasured} onChange={e=>setTdsMeasured((e.target as HTMLInputElement).value)} placeholder="例如 350" /></div>
           <div><Label>电导率实测 (μS/cm)</Label><Input type="text" inputMode="decimal" value={ecMeasured} onChange={e=>setEcMeasured((e.target as HTMLInputElement).value)} placeholder="例如 550" /></div>
           <div><Label>总硬度实测 (mg/L)</Label><Input type="text" inputMode="decimal" value={hardnessMeasured} onChange={e=>setHardnessMeasured((e.target as HTMLInputElement).value)} placeholder="例如 250" /></div>
-          <div><Label>Pb²⁺ (mg/L)</Label><Input type="text" inputMode="decimal" value={pbFixed} onChange={e=>setPbFixed((e.target as HTMLInputElement).value)} placeholder="例如 0.5" /></div>
-          <div><Label>CrO₄²⁻ (mg/L)</Label><Input type="text" inputMode="decimal" value={cro4Fixed} onChange={e=>setCro4Fixed((e.target as HTMLInputElement).value)} placeholder="例如 0.3" /></div>
         </div>
 
         <div style={{ display: 'flex', gap: 12, borderTop: '1px solid var(--colorNeutralStroke2)', paddingTop: 12, marginTop: 12 }}>
           <Button appearance="primary" size="large" icon={<Calculator24Regular />} onClick={()=>setShowResult(true)}>开始计算</Button>
           <Button onClick={resetAll}>重置</Button>
+      <Text size={200} style={{ color: 'var(--colorNeutralForeground2)', marginTop: 8 }}>
+        如需计算沉淀溶解平衡，请分别在“可选阳离子”添加“铅 (Pb²⁺)”，并在“可选阴离子”添加“铬酸根 (CrO₄²⁻)”。
+      </Text>
+
         </div>
       </Card>
 
