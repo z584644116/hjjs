@@ -72,6 +72,14 @@ const navigationItems = [
     href: '/calculator/wqc',
     available: true,
   },
+  {
+    id: 'fluegas-conversion',
+    title: '烟气折算计算',
+    description: '将实测污染物浓度折算为基准氧含量下的污染物浓度',
+    icon: <Calculator24Regular />,
+    href: '/calculator/fluegas',
+    available: true,
+  },
 ];
 
 export default function NavigationGrid() {
