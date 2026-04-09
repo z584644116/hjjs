@@ -5,11 +5,19 @@ const compat = new FlatCompat({
 });
 
 module.exports = [
+  {
+    ignores: [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "next-env.d.ts",
+    ],
+  },
   ...compat.extends("next/core-web-vitals"),
   {
     files: ["scripts/**/*.js"],
     rules: {
-      // 脚本文件允许 require，禁用相关规则
       "no-undef": "off"
     }
   }

@@ -19,7 +19,7 @@ RUN npm run build
 RUN mkdir -p /app/data
 
 # 暴露端口
-EXPOSE 3000
+EXPOSE 9999
 
 # 以 root 运行，避免卷权限导致的写入失败
 USER root
