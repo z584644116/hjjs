@@ -1,28 +1,18 @@
-# 最简单的 Next.js Dockerfile
 FROM node:18-alpine
 
 WORKDIR /app
 
-# 复制 package 文件
 COPY package*.json ./
-
-# 安装依赖（包括 devDependencies，构建需要）
 RUN npm install --no-audit --no-fund
 
-# 复制源代码
 COPY . .
-
-# 构建应用
 RUN npm run build
 
-# 创建数据目录
-RUN mkdir -p /app/data
+# Create a dedicated runtime user and grant write access to app data.
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup && mkdir -p /app/data /app/backups && chown -R appuser:appgroup /app
 
-# 暴露端口
 EXPOSE 9999
 
-# 以 root 运行，避免卷权限导致的写入失败
-USER root
+USER appuser
 
-# 启动应用
 CMD ["npm", "run", "start"]
