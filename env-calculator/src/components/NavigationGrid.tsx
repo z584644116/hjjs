@@ -35,10 +35,8 @@ export default function NavigationGrid() {
   return (
     <div className="page-container">
       <section className="mx-auto max-w-[1160px] space-y-4">
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1">
-          <div className="text-xs font-medium text-[var(--app-ink-tertiary)]">
-            默认打开: {activeCategory}
-          </div>
+        <div className="grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3 px-1">
+          <div aria-hidden="true" />
           <h1 className="text-base font-black text-[var(--app-ink)]">{activeCategory}</h1>
           <div className="flex justify-end">
             <span className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink-secondary)]">

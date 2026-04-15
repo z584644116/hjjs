@@ -40,18 +40,7 @@ export const calculatorCategories: { key: CalculatorCategory; label: string; des
   },
 ];
 
-export const calculatorNavItems: CalculatorNavItem[] = [
-  {
-    id: 'environment-formulas-v23',
-    title: '环境公式 v2.3',
-    shortTitle: '公式 v2.3',
-    description: '按空气废气、水质、通用与质控分类整合常用环境公式。',
-    category: '通用与质控',
-    icon: React.createElement(DataUsage24Regular),
-    href: '/calculator/v23',
-    featured: true,
-    badge: '12 模块',
-  },
+const mainTools: CalculatorNavItem[] = [
   {
     id: 'sampling-calculator',
     title: '采样嘴计算',
@@ -72,7 +61,7 @@ export const calculatorNavItems: CalculatorNavItem[] = [
   {
     id: 'gas-converter',
     title: '气体单位换算',
-    description: '支持 SO₂、NO、NO₂、CO、NMHC 等污染物浓度换算。',
+    description: '支持 SO2、NO、NO2、CO、NMHC 等污染物浓度换算。',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/gas',
@@ -96,7 +85,7 @@ export const calculatorNavItems: CalculatorNavItem[] = [
   },
   {
     id: 'water-quality-qc',
-    title: '水质质量控制分析',
+    title: '水质质控',
     description: '覆盖离子平衡、TDS、电导率、硬度与溶解度核查。',
     category: '水质',
     icon: React.createElement(Beaker24Regular),
@@ -112,10 +101,126 @@ export const calculatorNavItems: CalculatorNavItem[] = [
   },
   {
     id: 'well-calculator',
-    title: '地下水井水体积',
+    title: '井水体积',
     description: '按井深、埋深和井径计算井水体积与换水参考量。',
     category: '水质',
     icon: React.createElement(Drop24Regular),
     href: '/calculator/well',
   },
+];
+
+const v23FormulaTools: CalculatorNavItem[] = [
+  {
+    id: 'v23-air-volume',
+    title: '标准采样体积',
+    shortTitle: '采样体积',
+    description: 'Q、t、P、温度换算 Vn。',
+    category: '空气和废气',
+    icon: React.createElement(DataUsage24Regular),
+    href: '/calculator/v23?module=air-volume',
+  },
+  {
+    id: 'v23-pm-conc',
+    title: 'PM 浓度',
+    description: '滤膜增重与标准采样体积计算。',
+    category: '空气和废气',
+    icon: React.createElement(Cloud24Regular),
+    href: '/calculator/v23?module=pm-conc',
+  },
+  {
+    id: 'v23-stack-pm',
+    title: '固定源颗粒物',
+    shortTitle: '颗粒物浓度',
+    description: '捕集质量与标准干烟气体积计算。',
+    category: '空气和废气',
+    icon: React.createElement(Cloud24Regular),
+    href: '/calculator/v23?module=stack-pm',
+  },
+  {
+    id: 'v23-gas-flow',
+    title: '烟气流速',
+    description: '动压、压力、温度、皮托管系数计算。',
+    category: '空气和废气',
+    icon: React.createElement(Cloud24Regular),
+    href: '/calculator/v23?module=gas',
+  },
+  {
+    id: 'v23-aqi',
+    title: 'AQI',
+    description: '空气质量指数计算。',
+    category: '空气和废气',
+    icon: React.createElement(LeafOne24Regular),
+    href: '/calculator/v23?module=aqi',
+  },
+  {
+    id: 'v23-alkalinity-hardness',
+    title: '碱度/硬度',
+    description: '滴定法换算。',
+    category: '水质',
+    icon: React.createElement(Beaker24Regular),
+    href: '/calculator/v23?module=alkalinity-hardness',
+  },
+  {
+    id: 'v23-mdl-qc',
+    title: 'MDL',
+    description: '方法检出限。',
+    category: '通用与质控',
+    icon: React.createElement(DataUsage24Regular),
+    href: '/calculator/v23?module=mdl-qc',
+  },
+  {
+    id: 'v23-recovery-qc',
+    title: '加标回收率',
+    shortTitle: '回收率',
+    description: '加标回收率。',
+    category: '通用与质控',
+    icon: React.createElement(Beaker24Regular),
+    href: '/calculator/v23?module=recovery-qc',
+  },
+  {
+    id: 'v23-rsd-qc',
+    title: 'RSD',
+    description: '相对标准偏差。',
+    category: '通用与质控',
+    icon: React.createElement(DataUsage24Regular),
+    href: '/calculator/v23?module=rsd-qc',
+  },
+  {
+    id: 'v23-soil-moisture',
+    title: '土壤含水率',
+    shortTitle: '含水率',
+    description: '湿重、干重计算。',
+    category: '通用与质控',
+    icon: React.createElement(Drop24Regular),
+    href: '/calculator/v23?module=soil-moisture',
+  },
+  {
+    id: 'v23-soil-prep-qc',
+    title: '土壤 QC',
+    description: '制备损失率与过筛率。',
+    category: '通用与质控',
+    icon: React.createElement(LeafOne24Regular),
+    href: '/calculator/v23?module=soil-prep-qc',
+  },
+  {
+    id: 'v23-sample-size',
+    title: '样本数',
+    description: '统计样本数估算。',
+    category: '通用与质控',
+    icon: React.createElement(Calculator24Regular),
+    href: '/calculator/v23?module=sample-size',
+  },
+  {
+    id: 'v23-exceedance',
+    title: '超标倍数',
+    description: '标准指数与超标倍数。',
+    category: '通用与质控',
+    icon: React.createElement(DataUsage24Regular),
+    href: '/calculator/v23?module=exceedance',
+  },
+];
+
+export const calculatorNavItems: CalculatorNavItem[] = [
+  ...mainTools,
+  ...v23FormulaTools,
 ];

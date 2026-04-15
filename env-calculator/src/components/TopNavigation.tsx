@@ -84,8 +84,8 @@ export default function TopNavigation() {
             </nav>
 
             <div className="flex items-center gap-2">
-              <Link href="/calculator/v23" className="app-action-primary hidden md:inline-flex">
-                公式总览
+              <Link href="/" className="app-action-primary hidden md:inline-flex">
+                全部工具
               </Link>
 
               <button

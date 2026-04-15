@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const enableStrictHttps = process.env.ENABLE_STRICT_HTTPS === "true";
+
 const csp = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -14,7 +16,7 @@ const csp = [
   "frame-src 'none'",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
-  "upgrade-insecure-requests",
+  ...(enableStrictHttps ? ["upgrade-insecure-requests"] : []),
 ].join('; ');
 
 const securityHeaders = [
@@ -24,7 +26,9 @@ const securityHeaders = [
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   { key: "Origin-Agent-Cluster", value: "?1" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  ...(enableStrictHttps
+    ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+    : []),
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -34,6 +38,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
+  allowedDevOrigins: [
+    "http://192.168.31.126:9998",
+    "http://192.168.31.126:9999",
+  ],
   images: {
     unoptimized: true,
   },

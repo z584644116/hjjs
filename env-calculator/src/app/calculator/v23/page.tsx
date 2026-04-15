@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
@@ -32,6 +32,7 @@ type ModuleKey =
   | 'aqi'
   | 'mdl-qc'
   | 'recovery-qc'
+  | 'rsd-qc'
   | 'alkalinity-hardness'
   | 'soil-moisture'
   | 'soil-prep-qc'
@@ -48,29 +49,12 @@ const modules: { key: ModuleKey; title: string; description: string; category: M
   { key: 'aqi', title: '空气质量指数 AQI', description: '按污染物动态切换 μg/m³ 或 mg/m³', category: '空气和废气' },
   { key: 'alkalinity-hardness', title: '滴定法碱度/硬度', description: '滴定体积与浓度换算 mg/L，以 CaCO₃ 计', category: '水质' },
   { key: 'mdl-qc', title: '方法检出限 MDL', description: 'MDL = t × s，结果与 s 单位一致', category: '通用与质控' },
-  { key: 'recovery-qc', title: '加标回收率与 RSD', description: '回收率与相对标准偏差，结果单位 %', category: '通用与质控' },
+  { key: 'recovery-qc', title: '加标回收率', description: '加标回收率，结果单位 %', category: '通用与质控' },
+  { key: 'rsd-qc', title: 'RSD', description: '相对标准偏差，结果单位 %', category: '通用与质控' },
   { key: 'soil-moisture', title: '土壤含水率', description: '湿重、干重计算质量含水率 %', category: '通用与质控' },
   { key: 'soil-prep-qc', title: '土壤制备 QC', description: '制备损失率与过筛率，结果单位 %', category: '通用与质控' },
   { key: 'sample-size', title: '统计样本数', description: '标准差、允许误差和置信系数估算 n', category: '通用与质控' },
   { key: 'exceedance', title: '污染物超标倍数', description: '实测浓度与标准限值计算标准指数', category: '通用与质控' },
-];
-
-const moduleCategories: { key: ModuleCategory; label: string; description: string }[] = [
-  {
-    key: '空气和废气',
-    label: '空气和废气',
-    description: '环境空气、固定源、烟气流速与采样体积等常用计算。',
-  },
-  {
-    key: '水质',
-    label: '水质',
-    description: '滴定法等典型水质核算场景。',
-  },
-  {
-    key: '通用与质控',
-    label: '通用与质控',
-    description: '方法检出限、回收率、样本量与土壤制备等辅助计算。',
-  },
 ];
 
 function parseDecimal(value: string): number {
@@ -85,6 +69,10 @@ function parseNumberList(value: string): number[] {
     .map(parseDecimal);
 }
 
+function isModuleKey(value: string | null): value is ModuleKey {
+  return modules.some((item) => item.key === value);
+}
+
 export default function V23CalculatorPage() {
   const [activeModule, setActiveModule] = useState<ModuleKey>('air-volume');
 
@@ -94,7 +82,8 @@ export default function V23CalculatorPage() {
   const [gas, setGas] = useState({ pd: '60', ba: '101.3', ps: '-1.2', temp: '120', kp: '0.84', density: '', nozzle: '8', actualFlow: '12' });
   const [aqi, setAqi] = useState<{ pollutant: AqiPollutant; concentration: string }>({ pollutant: 'PM2_5_24H', concentration: '55' });
   const [mdl, setMdl] = useState({ sd: '0.012', t: '3.143', unit: 'mg/L' });
-  const [recovery, setRecovery] = useState({ original: '1.00', spiked: '1.45', spike: '0.50', values: '1.02, 1.01, 1.04, 1.03' });
+  const [recovery, setRecovery] = useState({ original: '1.00', spiked: '1.45', spike: '0.50' });
+  const [rsdValues, setRsdValues] = useState('1.02, 1.01, 1.04, 1.03');
   const [titration, setTitration] = useState({ volume: '12.30', blank: '0.05', concentration: '0.0100', sample: '100' });
   const [moisture, setMoisture] = useState({ wet: '125.4', dry: '103.2' });
   const [soilPrep, setSoilPrep] = useState({ before: '500', after: '496', passed: '480', total: '500' });
@@ -102,8 +91,13 @@ export default function V23CalculatorPage() {
   const [exceedance, setExceedance] = useState({ concentration: '1.2', limit: '1.0', unit: 'mg/L' });
 
   const activeInfo = modules.find(item => item.key === activeModule) ?? modules[0];
-  const activeCategory = activeInfo.category;
-  const visibleModules = modules.filter((item) => item.category === activeCategory);
+
+  useEffect(() => {
+    const moduleParam = new URLSearchParams(window.location.search).get('module');
+    if (isModuleKey(moduleParam)) {
+      setActiveModule(moduleParam);
+    }
+  }, []);
 
   const content = useMemo(() => {
     switch (activeModule) {
@@ -309,34 +303,53 @@ export default function V23CalculatorPage() {
           spikedConcentration: parseDecimal(recovery.spiked),
           spikeAmount: parseDecimal(recovery.spike),
         });
-        const rsdResult = calculateRsd(parseNumberList(recovery.values));
         return (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <NumberInput label="原样测定值" unit="mg/L 或 μg" value={recovery.original} onChange={original => setRecovery(prev => ({ ...prev, original }))} />
               <NumberInput label="加标样测定值" unit="mg/L 或 μg" value={recovery.spiked} onChange={spiked => setRecovery(prev => ({ ...prev, spiked }))} />
               <NumberInput label="加标量" unit="mg/L 或 μg" value={recovery.spike} onChange={spike => setRecovery(prev => ({ ...prev, spike }))} />
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-[var(--app-ink-secondary)]">RSD 测定值</label>
-                <input
-                  type="text"
-                  value={recovery.values}
-                  onChange={event => setRecovery(prev => ({ ...prev, values: event.target.value }))}
-                  placeholder="用逗号或空格分隔多个值"
-                  className="w-full min-h-[38px] px-3 py-2 rounded-[var(--app-radius-sm)] border border-[var(--app-line)] hover:border-[var(--app-line-strong)] bg-[var(--app-surface)] text-[var(--app-ink)] text-sm placeholder:text-[var(--app-ink-tertiary)] transition-colors outline-none focus:ring-2 focus:ring-[var(--app-primary)] focus:border-[var(--app-primary)]"
-                />
-              </div>
             </div>
             {'error' in spikeResult ? (
               <div className="mt-4 p-3 rounded-[var(--app-radius-sm)] bg-[var(--app-danger-light)] text-[var(--app-danger)] text-sm">{spikeResult.error}</div>
-            ) : 'error' in rsdResult ? (
-              <div className="mt-4 p-3 rounded-[var(--app-radius-sm)] bg-[var(--app-danger-light)] text-[var(--app-danger)] text-sm">{rsdResult.error}</div>
             ) : (
               <div className="mt-4">
                 <ResultDisplay
                   items={[
                     { label: '回收量', value: spikeResult.recoveredAmount.toFixed(6) },
                     { label: '加标回收率', value: spikeResult.recoveryPercent.toFixed(2), unit: '%' },
+                  ]}
+                />
+              </div>
+            )}
+          </>
+        );
+      }
+      case 'rsd-qc': {
+        const rsdResult = calculateRsd(parseNumberList(rsdValues));
+        return (
+          <>
+            <div className="grid grid-cols-1 gap-3">
+              <div className="app-number-field">
+                <label className="app-number-label" htmlFor="rsd-values">测定值</label>
+                <div className="app-number-control">
+                  <input
+                    id="rsd-values"
+                    type="text"
+                    value={rsdValues}
+                    onChange={event => setRsdValues(event.target.value)}
+                    placeholder="用逗号或空格分隔"
+                    className="app-number-input text-left"
+                  />
+                </div>
+              </div>
+            </div>
+            {'error' in rsdResult ? (
+              <div className="mt-4 p-3 rounded-[var(--app-radius-sm)] bg-[var(--app-danger-light)] text-[var(--app-danger)] text-sm">{rsdResult.error}</div>
+            ) : (
+              <div className="mt-4">
+                <ResultDisplay
+                  items={[
                     { label: '平均值', value: rsdResult.average.toFixed(6) },
                     { label: '标准偏差', value: rsdResult.standardDeviation.toFixed(6) },
                     { label: 'RSD', value: rsdResult.rsdPercent.toFixed(2), unit: '%' },
@@ -505,56 +518,12 @@ export default function V23CalculatorPage() {
       default:
         return null;
     }
-  }, [activeModule, air, pm, stackPm, gas, aqi, mdl, recovery, titration, moisture, soilPrep, sampleSize, exceedance]);
+  }, [activeModule, air, pm, stackPm, gas, aqi, mdl, recovery, rsdValues, titration, moisture, soilPrep, sampleSize, exceedance]);
 
   return (
-    <CalculatorShell title="环境公式 v2.3">
-      <section className="space-y-4">
-        <div className="hide-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-          {moduleCategories.map((category) => {
-            const active = category.key === activeCategory;
-            const count = modules.filter((item) => item.category === category.key).length;
-            return (
-              <button
-                key={category.key}
-                type="button"
-                onClick={() => setActiveModule(modules.find((item) => item.category === category.key)?.key ?? activeModule)}
-                className="app-segment shrink-0"
-                data-active={active}
-              >
-                {category.label}
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${active ? 'bg-white/18 text-white' : 'bg-[var(--app-surface)] text-[var(--app-ink-tertiary)]'}`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-[280px_minmax(0,1fr)] md:items-start">
-          <aside className="space-y-2">
-            {visibleModules.map((item) => (
-              <button
-                key={item.key}
-                type="button"
-                onClick={() => setActiveModule(item.key)}
-                className={`w-full rounded-2xl border px-4 py-3 text-left transition-all ${
-                  activeModule === item.key
-                    ? 'border-[var(--app-primary)] bg-[var(--app-primary-light)] shadow-[var(--app-shadow-sm)]'
-                    : 'border-[var(--app-line)] bg-[var(--app-surface)] hover:border-[var(--app-line-strong)]'
-                }`}
-              >
-                <div className="text-sm font-semibold text-[var(--app-ink)]">{item.title}</div>
-              </button>
-            ))}
-          </aside>
-
-          <div className="app-panel p-4 md:p-5">
-            <h3 className="text-lg font-bold text-[var(--app-ink)] md:text-xl">{activeInfo.title}</h3>
-            <hr className="my-4 border-[var(--app-line)]" />
-            {content}
-          </div>
-        </div>
+    <CalculatorShell title={activeInfo.title}>
+      <section className="app-panel p-4 md:p-5">
+        {content}
       </section>
     </CalculatorShell>
   );

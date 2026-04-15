@@ -61,20 +61,16 @@ export default function NumberInput({
     [onSubmit],
   );
 
-  const hasError = !!error;
-  const helperText = hasError ? error : hint;
+  const helperText = error || hint;
   const helperId = helperText ? `${id}-helper` : undefined;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <label htmlFor={id} className="text-sm font-black text-[var(--app-ink)]">
-          {label}
-          {required && <span className="ml-1 text-[var(--app-danger)]">*</span>}
-        </label>
-      </div>
-
-      <div className="relative">
+    <div className="app-number-field" data-invalid={!!error}>
+      <label htmlFor={id} className="app-number-label">
+        {label}
+        {required && <span aria-hidden="true">*</span>}
+      </label>
+      <div className="app-number-control">
         <input
           id={id}
           type="text"
@@ -82,26 +78,19 @@ export default function NumberInput({
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder ?? '输入数值'}
+          placeholder={placeholder ?? '0'}
           step={step}
           min={min}
           max={max}
           disabled={disabled}
-          aria-invalid={hasError}
+          aria-invalid={!!error}
           aria-describedby={helperId}
-          className={`app-form-control px-3 py-2 pr-16 placeholder:text-[var(--app-ink-tertiary)] disabled:cursor-not-allowed disabled:opacity-50 ${
-            hasError ? 'border-[var(--app-danger)] shadow-[0_0_0_4px_var(--app-danger-light)]' : ''
-          }`}
+          className="app-number-input"
         />
-        {unit && (
-          <span className="pointer-events-none absolute right-3 top-1/2 max-w-[52px] -translate-y-1/2 truncate text-right text-xs font-bold text-[var(--app-ink-tertiary)]">
-            {unit}
-          </span>
-        )}
+        {unit && <span className="app-number-unit">{unit}</span>}
       </div>
-
       {helperText && (
-        <span id={helperId} className={`text-xs leading-5 ${hasError ? 'text-[var(--app-danger)]' : 'text-[var(--app-ink-tertiary)]'}`}>
+        <span id={helperId} className="app-number-helper">
           {helperText}
         </span>
       )}
