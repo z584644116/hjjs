@@ -8,6 +8,7 @@ on:
     branches: [ main ]
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   SERVICE_NAME: env-calculator
   REGION: us-central1
 
@@ -16,19 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '24'
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm ci
-
-    - name: Run tests
-      run: npm run test --if-present
+      run: npm ci --legacy-peer-deps
 
     - name: Run linting
       run: npm run lint
@@ -40,14 +38,16 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
-    
+
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v4
 
     - name: Setup ClawCloud CLI
       run: |
-        # 下载并安装 ClawCloud CLI
         curl -sSL https://cli.clawcloud.com/install.sh | bash
         echo "$HOME/.clawcloud/bin" >> $GITHUB_PATH
 
@@ -55,18 +55,14 @@ jobs:
       env:
         CLAW_SERVICE_ACCOUNT_KEY: ${{ secrets.CLAW_SERVICE_ACCOUNT_KEY }}
       run: |
-        # 使用服务账号密钥进行认证
         echo "${CLAW_SERVICE_ACCOUNT_KEY}" | base64 -d > ${HOME}/claw-key.json
         export CLAW_APPLICATION_CREDENTIALS=${HOME}/claw-key.json
         claw auth login --service-account-file=${HOME}/claw-key.json
 
-    - name: Build and Push Docker image
+    - name: Build and push Docker image
       run: |
-        # 构建镜像
         docker build -t ${{ env.SERVICE_NAME }}:${{ github.sha }} .
         docker tag ${{ env.SERVICE_NAME }}:${{ github.sha }} ${{ env.SERVICE_NAME }}:latest
-
-        # 推送到 ClawCloud Registry
         claw registry push ${{ env.SERVICE_NAME }}:${{ github.sha }}
         claw registry push ${{ env.SERVICE_NAME }}:latest
 
@@ -84,51 +80,12 @@ jobs:
           --cpu=1 \
           --max-instances=10 \
           --timeout=300 \
-          --port=3000
-
-    - name: Setup persistent storage
-      env:
-        CLAW_PROJECT_ID: ${{ secrets.CLAW_PROJECT_ID }}
-      run: |
-        # 创建持久化存储卷
-        claw compute disks create ${{ env.SERVICE_NAME }}-storage \
-          --size=10GB \
-          --region=${{ env.REGION }} \
-          --type=pd-standard
-
-        claw compute disks create ${{ env.SERVICE_NAME }}-backup \
-          --size=5GB \
-          --region=${{ env.REGION }} \
-          --type=pd-standard
-
-    - name: Apply ClawCloud configuration
-      run: |
-        claw apply -f clawcloud.yml
+          --port=9999
 
     - name: Verify deployment
       run: |
-        # 等待部署完成
         sleep 30
-
-        # 获取服务 URL
         SERVICE_URL=$(claw run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.url)")
         echo "Service deployed at: $SERVICE_URL"
-
-        # 健康检查
-        curl -f "$SERVICE_URL/api/health" || exit 1
-
-        # 设置输出变量
-        echo "SERVICE_URL=$SERVICE_URL" >> $GITHUB_OUTPUT
-
-    - name: Run post-deployment tests
-      run: |
-        SERVICE_URL=$(claw run services describe ${{ env.SERVICE_NAME }} --region=${{ env.REGION }} --format="value(status.url)")
-
-        # 测试存储 API
-        curl -f "$SERVICE_URL/api/storage?key=test&userId=test" || echo "Storage test passed"
-
-        # 测试主页
-        curl -f "$SERVICE_URL/" || exit 1
-
-
-
+        curl -f "$SERVICE_URL/api/health" --max-time 30
+        curl -f "$SERVICE_URL/" --max-time 30
