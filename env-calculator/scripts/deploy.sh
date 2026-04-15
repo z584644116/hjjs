@@ -167,7 +167,7 @@ deploy_to_clawcloud() {
     log_info "部署到 ClawCloud Run..."
 
     # 环境变量配置
-    local env_vars="NODE_ENV=$ENVIRONMENT,CLAW_CLOUD_RUN=true"
+    local env_vars="NODE_ENV=$ENVIRONMENT,CLAW_CLOUD_RUN=true,ENABLE_STORAGE_API=false"
     
     if command -v claw &> /dev/null; then
         # 使用 ClawCloud CLI
@@ -178,7 +178,7 @@ deploy_to_clawcloud() {
             --memory=512Mi \
             --cpu=0.5 \
             --max-instances=10 \
-            --port=3000 \
+            --port=9999 \
             --allow-unauthenticated"
     else
         # 使用 Docker 部署（如果支持）
