@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pH 标准缓冲液标准表值辅助匹配工具</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --line: #d1d5db;
+      --accent: #1d4ed8;
+      --soft: #eff6ff;
+      --ok: #065f46;
+      --warn: #92400e;
+      --bad: #991b1b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.58;
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    h1 { margin: 0 0 8px; font-size: 30px; }
+    .sub {
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr 1.35fr;
+      gap: 18px;
+      align-items: start;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 19px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 170px 1fr;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    label { font-weight: 700; }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #fff;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .help {
+      margin: -4px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 15px;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(29, 78, 216, 0.22);
+    }
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+      box-shadow: none;
+    }
+    .note {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 12px;
+      background: var(--soft);
+      border: 1px solid #bfdbfe;
+      color: #1d4ed8;
+      font-size: 14px;
+    }
+    .warn {
+      background: #fff7ed;
+      border-color: #fed7aa;
+      color: var(--warn);
+    }
+    .badbox {
+      background: #fef2f2;
+      border-color: #fecaca;
+      color: var(--bad);
+    }
+    .pill {
+      display: inline-block;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #4338ca;
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      vertical-align: top;
+    }
+    th {
+      background: #f9fafb;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      text-align: left;
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .small { font-size: 13px; color: var(--muted); }
+    .ok { color: var(--ok); font-weight: 700; }
+    .bad { color: var(--bad); font-weight: 700; }
+    .muted { color: var(--muted); }
+    .full { margin-top: 18px; }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; font-weight: 700; }
+    ul { margin-top: 10px; margin-bottom: 0; }
+    .footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .highlight {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    @media (max-width: 960px) {
+      .grid, .two-col { grid-template-columns: 1fr; }
+      .row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>pH 标准缓冲液标准表值辅助匹配工具</h1>
+  <div class="sub">
+    依据 <strong>HJ 1147-2020 附表 A.2</strong> 输出推荐的<strong>标准表值</strong>。算法仅用于辅助匹配，不生成新的标准值。
+  </div>
+
+  <div class="grid">
+    <section class="card">
+      <h2>输入参数</h2>
+      <div class="row">
+        <label for="temp">当前温度 / ℃</label>
+        <input id="temp" type="number" min="0" max="95" step="0.1" value="25.0" />
+      </div>
+      <div class="row">
+        <label for="mode">仪器模式</label>
+        <select id="mode">
+          <option value="mtc">手动温度补偿（MTC）</option>
+          <option value="atc">自动温度补偿（ATC）</option>
+        </select>
+      </div>
+      <div class="row">
+        <label for="strategy">匹配策略</label>
+        <select id="strategy">
+          <option value="local_ph">局部邻域辅助匹配（推荐）</option>
+          <option value="nearest_temp">最近温度点匹配（对照）</option>
+        </select>
+      </div>
+      <div class="help">
+        有效温区以标准表为准：B1/B4/B6/B9 为 0–95 ℃，B3 为 25–95 ℃，B12 为 0–60 ℃。
+      </div>
+
+      <div class="actions">
+        <button id="calcBtn">计算</button>
+        <button id="btn186" class="secondary">示例 18.6 ℃</button>
+        <button id="btn25" class="secondary">示例 25.0 ℃</button>
+        <button id="btn95" class="secondary">示例 95.0 ℃</button>
+      </div>
+
+      <div id="status" class="note" style="display:none;"></div>
+
+      <details open>
+        <summary>工具定位说明 <span class="pill">重要</span></summary>
+        <ul>
+          <li>最终输出值为 <strong>HJ 1147-2020 附表 A.2 的表列值</strong>。</li>
+          <li>“参考计算值”仅用于辅助判断，不应表述为任意温度下的新标准值。</li>
+          <li>推荐策略为“局部邻域辅助匹配”：只在当前温度相邻的两个标准温度点之间判定，避免 B6 这类非单调曲线出现跨区错配。</li>
+          <li>“操作显示值”用于 0.01 pH 分辨率仪器的人工设定或核查提示；若需更高精度，请直接使用三位小数的原始表值。</li>
+        </ul>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>推荐输出</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>缓冲液</th>
+            <th>参考计算值<br><span class="small">辅助值</span></th>
+            <th>匹配标准温度点</th>
+            <th>标准表值<br><span class="small">A.2 原值</span></th>
+            <th>操作显示值</th>
+            <th>状态</th>
+          </tr>
+        </thead>
+        <tbody id="resultBody"></tbody>
+      </table>
+      <div class="footer">
+        标准表值保留三位小数；操作显示值按 GB/T 8170-2008 的银行家舍入保留两位小数。
+      </div>
+    </section>
+  </div>
+
+  <div class="two-col">
+    <section class="card">
+      <h2>使用提示</h2>
+      <div id="modeTips" class="highlight"></div>
+      <details>
+        <summary>匹配规则（论文版写法）</summary>
+        <div class="small" style="margin-top:10px;">
+          当温度 T 恰为标准表温度点时，直接取该点表值。<br>
+          当 T 位于相邻标准温度点 T<sub>i</sub> 与 T<sub>i+1</sub> 之间时，先计算参考值 pH<sub>ref</sub>(T)，
+          再在 {pH<sub>tab</sub>(T<sub>i</sub>), pH<sub>tab</sub>(T<sub>i+1</sub>)} 中选择更接近者作为推荐核查表值。<br>
+          若两者差值相同，则优先选择温度更接近的温度点；若仍等距，则选择较低温度点并提示人工复核。
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <h2>程序说明</h2>
+      <div class="small">
+        参考计算值在程序层面采用保形分段插值（PCHIP）生成，仅用于帮助匹配标准表值，不作为最终标准值输出。
+        这种做法可减少边界振荡，并与标准表点保持一致。
+      </div>
+      <details>
+        <summary>为什么不直接“全表按最近 pH 值匹配”</summary>
+        <div class="small" style="margin-top:10px;">
+          像 B6 这类曲线在中温段呈 U 形，如果在整张表内直接寻找“最接近的 pH 值”，可能从 40 ℃ 跳到 60 ℃等远端温区，造成错配。
+          因此本工具把匹配限制在当前温度相邻的两个标准温度点之间，更符合标准表驱动的使用逻辑。
+        </div>
+      </details>
+    </section>
+  </div>
+
+  <section class="card full">
+    <h2>HJ 1147-2020 附表 A.2 原始数据</h2>
+    <div class="small">以下数据为程序内置的标准表值，最终推荐值均从本表中选取。</div>
+    <table id="dataTable"></table>
+  </section>
+</div>
+
+<script>
+const datasets = {
+  B1: {
+    label: "B1（25 ℃: 1.680）",
+    range: [0, 95],
+    x: [0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,95],
+    y: [1.668,1.669,1.671,1.673,1.676,1.680,1.684,1.688,1.694,1.700,1.706,1.713,1.721,1.739,1.759,1.782,1.795]
+  },
+  B3: {
+    label: "B3（25 ℃: 3.559）",
+    range: [25, 95],
+    x: [25,30,35,40,45,50,55,60,70,80,90,95],
+    y: [3.559,3.551,3.547,3.547,3.550,3.555,3.563,3.573,3.596,3.622,3.648,3.660]
+  },
+  B4: {
+    label: "B4（25 ℃: 4.003）",
+    range: [0, 95],
+    x: [0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,95],
+    y: [4.006,3.999,3.996,3.996,3.998,4.003,4.010,4.019,4.029,4.042,4.055,4.070,4.087,4.122,4.161,4.203,4.224]
+  },
+  B6: {
+    label: "B6（25 ℃: 6.864）",
+    range: [0, 95],
+    x: [0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,95],
+    y: [6.981,6.949,6.921,6.898,6.879,6.864,6.852,6.844,6.838,6.834,6.833,6.834,6.837,6.847,6.862,6.881,6.891]
+  },
+  B9: {
+    label: "B9（25 ℃: 9.182）",
+    range: [0, 95],
+    x: [0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,95],
+    y: [9.458,9.391,9.330,9.276,9.226,9.182,9.142,9.105,9.072,9.042,9.015,8.990,8.968,8.926,8.890,8.856,8.839]
+  },
+  B12: {
+    label: "B12（25 ℃: 12.460）",
+    range: [0, 60],
+    x: [0,5,10,15,20,25,30,35,40,45,50,55,60],
+    y: [13.416,13.210,13.011,12.820,12.637,12.460,12.292,12.130,11.975,11.828,11.697,11.553,11.426]
+  }
+};
+
+function bankersRound(value, decimals = 2) {
+  const factor = 10 ** decimals;
+  const n = value * factor;
+  const sign = n < 0 ? -1 : 1;
+  const abs = Math.abs(n);
+  const floor = Math.floor(abs);
+  const diff = abs - floor;
+  const eps = 1e-12;
+  let result;
+  if (diff > 0.5 + eps) result = floor + 1;
+  else if (diff < 0.5 - eps) result = floor;
+  else result = (floor % 2 === 0) ? floor : floor + 1;
+  return sign * result / factor;
+}
+
+function pchipSlopes(x, y) {
+  const n = x.length;
+  const h = new Array(n - 1);
+  const delta = new Array(n - 1);
+  for (let i = 0; i < n - 1; i++) {
+    h[i] = x[i + 1] - x[i];
+    delta[i] = (y[i + 1] - y[i]) / h[i];
+  }
+  const d = new Array(n).fill(0);
+  if (n === 2) {
+    d[0] = delta[0];
+    d[1] = delta[0];
+    return d;
+  }
+  for (let k = 1; k <= n - 2; k++) {
+    if (delta[k - 1] === 0 || delta[k] === 0 || Math.sign(delta[k - 1]) !== Math.sign(delta[k])) {
+      d[k] = 0;
+    } else {
+      const w1 = 2 * h[k] + h[k - 1];
+      const w2 = h[k] + 2 * h[k - 1];
+      d[k] = (w1 + w2) / (w1 / delta[k - 1] + w2 / delta[k]);
+    }
+  }
+  let d0 = ((2 * h[0] + h[1]) * delta[0] - h[0] * delta[1]) / (h[0] + h[1]);
+  if (Math.sign(d0) !== Math.sign(delta[0])) d0 = 0;
+  else if (Math.sign(delta[0]) !== Math.sign(delta[1]) && Math.abs(d0) > Math.abs(3 * delta[0])) d0 = 3 * delta[0];
+  d[0] = d0;
+  let dn = ((2 * h[n - 2] + h[n - 3]) * delta[n - 2] - h[n - 2] * delta[n - 3]) / (h[n - 2] + h[n - 3]);
+  if (Math.sign(dn) !== Math.sign(delta[n - 2])) dn = 0;
+  else if (Math.sign(delta[n - 2]) !== Math.sign(delta[n - 3]) && Math.abs(dn) > Math.abs(3 * delta[n - 2])) dn = 3 * delta[n - 2];
+  d[n - 1] = dn;
+  return d;
+}
+
+function pchipInterpolate(x, y, xq) {
+  const n = x.length;
+  if (xq < x[0] || xq > x[n - 1]) return null;
+  const d = pchipSlopes(x, y);
+  for (let i = 0; i < n; i++) {
+    if (Math.abs(xq - x[i]) < 1e-12) return y[i];
+  }
+  let k = 0;
+  while (k < n - 2 && xq > x[k + 1]) k++;
+  const h = x[k + 1] - x[k];
+  const t = (xq - x[k]) / h;
+  const h00 = 2 * t**3 - 3 * t**2 + 1;
+  const h10 = t**3 - 2 * t**2 + t;
+  const h01 = -2 * t**3 + 3 * t**2;
+  const h11 = t**3 - t**2;
+  return h00 * y[k] + h10 * h * d[k] + h01 * y[k + 1] + h11 * h * d[k + 1];
+}
+
+function bracketIndex(x, t) {
+  for (let i = 0; i < x.length; i++) {
+    if (Math.abs(t - x[i]) < 1e-12) return {exact: true, idx: i};
+  }
+  for (let i = 0; i < x.length - 1; i++) {
+    if (t > x[i] && t < x[i + 1]) return {exact: false, left: i, right: i + 1};
+  }
+  return null;
+}
+
+function matchLocalByReference(ds, t) {
+  const x = ds.x, y = ds.y;
+  const pos = bracketIndex(x, t);
+  if (!pos) return null;
+  const ref = pchipInterpolate(x, y, t);
+  if (pos.exact) {
+    return {
+      ref,
+      idx: pos.idx,
+      matchedTemp: x[pos.idx],
+      matchedValue: y[pos.idx],
+      rule: '标准温度点直接取值'
+    };
+  }
+  const candidates = [pos.left, pos.right];
+  candidates.sort((a, b) => {
+    const da = Math.abs(y[a] - ref);
+    const db = Math.abs(y[b] - ref);
+    if (Math.abs(da - db) > 1e-12) return da - db;
+    const ta = Math.abs(x[a] - t);
+    const tb = Math.abs(x[b] - t);
+    if (Math.abs(ta - tb) > 1e-12) return ta - tb;
+    return a - b;
+  });
+  const idx = candidates[0];
+  return {
+    ref,
+    idx,
+    matchedTemp: x[idx],
+    matchedValue: y[idx],
+    rule: `在 ${x[pos.left]}–${x[pos.right]} ℃ 邻域内辅助匹配`
+  };
+}
+
+function matchNearestTemp(ds, t) {
+  const x = ds.x, y = ds.y;
+  let idx = 0;
+  let best = Infinity;
+  for (let i = 0; i < x.length; i++) {
+    const d = Math.abs(x[i] - t);
+    if (d < best - 1e-12) {
+      best = d;
+      idx = i;
+    }
+  }
+  return {
+    ref: pchipInterpolate(x, y, Math.min(Math.max(t, x[0]), x[x.length - 1])),
+    idx,
+    matchedTemp: x[idx],
+    matchedValue: y[idx],
+    rule: '最近温度点匹配'
+  };
+}
+
+function calcOne(ds, t, strategy) {
+  const [minT, maxT] = ds.range;
+  if (t < minT || t > maxT) {
+    return {
+      ref: null,
+      matchedTemp: null,
+      matchedValue: null,
+      displayValue: null,
+      status: `超出范围（${minT}–${maxT} ℃）`,
+      note: '无推荐表值'
+    };
+  }
+  const main = strategy === 'nearest_temp' ? matchNearestTemp(ds, t) : matchLocalByReference(ds, t);
+  const compare = strategy === 'nearest_temp' ? matchLocalByReference(ds, t) : matchNearestTemp(ds, t);
+  const displayValue = bankersRound(main.matchedValue, 2);
+  let note = main.rule;
+  if (compare && compare.matchedTemp !== main.matchedTemp) {
+    note += `；与另一策略不同（对照策略为 ${compare.matchedTemp} ℃）`;
+  }
+  return {
+    ref: main.ref,
+    matchedTemp: main.matchedTemp,
+    matchedValue: main.matchedValue,
+    displayValue,
+    status: '有效',
+    note
+  };
+}
+
+function fmt3(v) { return v == null ? '—' : v.toFixed(3); }
+function fmt6(v) { return v == null ? '—' : v.toFixed(6); }
+function fmt2(v) { return v == null ? '—' : v.toFixed(2); }
+
+function renderModeTips(mode) {
+  const box = document.getElementById('modeTips');
+  if (mode === 'mtc') {
+    box.innerHTML = `
+      <strong>MTC 建议：</strong>将标准缓冲溶液温度调至与样品实际温度一致，然后按本工具给出的 <strong>标准表值</strong> 进行人工设定或核查。<br>
+      <span class="small">若仪器仅支持 0.01 pH 输入，可参考“操作显示值”；如需更高精度，请直接采用附表 A.2 三位小数原值。</span>
+    `;
+  } else {
+    box.innerHTML = `
+      <strong>ATC 建议：</strong>仪器可自动识别缓冲液温度并调用相应温度下的标准值。本工具更适合作为 <strong>校核工具</strong>，用于检查仪器对附表 A.2 的调用是否合理。<br>
+      <span class="small">最终仍应以仪器说明书和 HJ 1147-2020 附表 A.2 为准。</span>
+    `;
+  }
+}
+
+function renderResults() {
+  const t = Number(document.getElementById('temp').value);
+  const strategy = document.getElementById('strategy').value;
+  const mode = document.getElementById('mode').value;
+  const body = document.getElementById('resultBody');
+  const status = document.getElementById('status');
+  body.innerHTML = '';
+
+  renderModeTips(mode);
+
+  if (Number.isNaN(t)) {
+    status.style.display = '';
+    status.className = 'note badbox';
+    status.textContent = '请输入有效温度。';
+    return;
+  }
+
+  if (t < 0 || t > 95) {
+    status.style.display = '';
+    status.className = 'note badbox';
+    status.textContent = '工具总输入范围为 0–95 ℃；超出范围时不推荐标准表值。';
+  } else {
+    status.style.display = '';
+    status.className = 'note';
+    status.textContent = strategy === 'local_ph'
+      ? `当前温度 ${t.toFixed(1)} ℃。已按“局部邻域辅助匹配”策略输出标准表值。该策略更适合 B6 等非单调曲线。`
+      : `当前温度 ${t.toFixed(1)} ℃。已按“最近温度点匹配”策略输出标准表值。`;
+  }
+
+  for (const key of Object.keys(datasets)) {
+    const ds = datasets[key];
+    const res = calcOne(ds, t, strategy);
+    const tr = document.createElement('tr');
+    const ok = res.matchedValue != null;
+    tr.innerHTML = `
+      <td><strong>${ds.label}</strong><div class="small">${res.note || ''}</div></td>
+      <td class="mono">${fmt6(res.ref)}</td>
+      <td class="mono">${res.matchedTemp == null ? '—' : res.matchedTemp.toFixed(0) + ' ℃'}</td>
+      <td class="mono">${fmt3(res.matchedValue)}</td>
+      <td class="mono">${fmt2(res.displayValue)}</td>
+      <td class="${ok ? 'ok' : 'bad'}">${res.status}</td>
+    `;
+    body.appendChild(tr);
+  }
+}
+
+function renderDataTable() {
+  const temps = [0,5,10,15,20,25,30,35,40,45,50,55,60,70,80,90,95];
+  const table = document.getElementById('dataTable');
+  let html = `
+    <thead>
+      <tr>
+        <th>温度 / ℃</th>
+        <th>B1</th>
+        <th>B3</th>
+        <th>B4</th>
+        <th>B6</th>
+        <th>B9</th>
+        <th>B12</th>
+      </tr>
+    </thead>
+    <tbody>
+  `;
+  for (const t of temps) {
+    const row = [t];
+    for (const key of ['B1','B3','B4','B6','B9','B12']) {
+      const ds = datasets[key];
+      const idx = ds.x.indexOf(t);
+      row.push(idx >= 0 ? ds.y[idx].toFixed(3) : '—');
+    }
+    html += `<tr>${row.map(v => `<td class="mono">${v}</td>`).join('')}</tr>`;
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+document.getElementById('calcBtn').addEventListener('click', renderResults);
+document.getElementById('temp').addEventListener('input', renderResults);
+document.getElementById('mode').addEventListener('change', renderResults);
+document.getElementById('strategy').addEventListener('change', renderResults);
+document.getElementById('btn186').addEventListener('click', () => { document.getElementById('temp').value = 18.6; renderResults(); });
+document.getElementById('btn25').addEventListener('click', () => { document.getElementById('temp').value = 25; renderResults(); });
+document.getElementById('btn95').addEventListener('click', () => { document.getElementById('temp').value = 95; renderResults(); });
+
+renderDataTable();
+renderResults();
+</script>
+</body>
+</html>

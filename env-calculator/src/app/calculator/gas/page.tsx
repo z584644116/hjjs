@@ -1,55 +1,72 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { Title1, Title2, Body1, Input, Label, Card, Divider, makeStyles, Text } from "@fluentui/react-components";
 import { GAS_LIST, convertGasUnits, GasKey } from "@/lib/gas";
-
-const useStyles = makeStyles({
-  container: { maxWidth: "900px", margin: "0 auto", padding: "24px" },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "16px",
-  },
-  field: { display: "flex", flexDirection: "column", gap: "6px" },
-  resultGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-    gap: "12px",
-  },
-});
+import CalculatorShell from "@/components/CalculatorShell";
+import NumberInput from "@/components/NumberInput";
+import ResultDisplay from "@/components/ResultDisplay";
 
 export default function GasConverterPage() {
-  const styles = useStyles();
   const [gas, setGas] = useState<GasKey>("SO2");
   const [temperatureStr, setTemperatureStr] = useState<string>("0");
   const [pressureStr, setPressureStr] = useState<string>("101.325");
   const [inputStr, setInputStr] = useState<string>("");
-  const [inputUnit, setInputUnit] = useState<'ppm' | 'mg/m3'>("ppm");
+  const [inputUnit, setInputUnit] = useState<"ppm" | "mg/m3">("ppm");
 
   const result = useMemo(() => {
-    const t = temperatureStr === "" ? NaN : parseFloat(temperatureStr.replace(",","."));
-    const p = pressureStr === "" ? NaN : parseFloat(pressureStr.replace(",","."));
-    const v = inputStr === "" ? NaN : parseFloat(inputStr.replace(",","."));
+    const t =
+      temperatureStr === ""
+        ? NaN
+        : parseFloat(temperatureStr.replace(",", "."));
+    const p =
+      pressureStr === ""
+        ? NaN
+        : parseFloat(pressureStr.replace(",", "."));
+    const v =
+      inputStr === "" ? NaN : parseFloat(inputStr.replace(",", "."));
     try {
-      return convertGasUnits({ gas, inputValue: v, inputUnit, temperatureC: t, pressureKPa: p, decimals: 2 });
-    } catch (e) {
+      return convertGasUnits({
+        gas,
+        inputValue: v,
+        inputUnit,
+        temperatureC: t,
+        pressureKPa: p,
+        decimals: 2,
+      });
+    } catch {
       return null;
     }
   }, [gas, temperatureStr, pressureStr, inputStr, inputUnit]);
 
-  return (
-    <div className="page-container">
-      <div className={styles.container}>
-        <Title1 style={{ marginBottom: 8 }}>气体单位换算</Title1>
+  const selectedGas = GAS_LIST.find((g) => g.key === gas);
 
-        <div className={styles.grid}>
-          <div className={styles.field}>
-            <Label required>气体</Label>
+  const tempNum =
+    temperatureStr === "" || isNaN(parseFloat(temperatureStr.replace(",", ".")))
+      ? null
+      : parseFloat(temperatureStr.replace(",", "."));
+  const pressNum =
+    pressureStr === "" || isNaN(parseFloat(pressureStr.replace(",", ".")))
+      ? null
+      : parseFloat(pressureStr.replace(",", "."));
+
+  return (
+    <CalculatorShell
+      title="气体单位换算"
+      description="SO2/NO/NO2/CO/NMHC 浓度换算"
+    >
+      {/* Input Card */}
+      <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)] p-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Gas select */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[var(--app-ink-secondary)]">
+              <span className="text-[var(--app-danger)] mr-0.5">*</span>
+              气体
+            </label>
             <select
               value={gas}
               onChange={(e) => setGas(e.target.value as GasKey)}
-              style={{ height: 32, borderRadius: 4 }}
+              className="w-full min-h-[42px] px-3 rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink)] text-sm outline-none hover:border-[var(--app-line-strong)] focus:ring-2 focus:ring-[var(--app-primary)] focus:border-[var(--app-primary)] transition-colors"
             >
               {GAS_LIST.map((g) => (
                 <option key={g.key} value={g.key}>
@@ -57,64 +74,94 @@ export default function GasConverterPage() {
                 </option>
               ))}
             </select>
-            <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-              {GAS_LIST.find(g => g.key === gas)?.note || ""}
-            </Text>
+            {selectedGas?.note && (
+              <span className="text-xs text-[var(--app-ink-tertiary)]">
+                {selectedGas.note}
+              </span>
+            )}
           </div>
 
-          <div className={styles.field}>
-            <Label required>温度 (℃)</Label>
-            <Input type="text" inputMode="decimal" value={temperatureStr}
-              onChange={e => setTemperatureStr((e.target as HTMLInputElement).value)} />
-          </div>
+          <NumberInput
+            label="温度"
+            unit="℃"
+            value={temperatureStr}
+            onChange={setTemperatureStr}
+            required
+          />
 
-          <div className={styles.field}>
-            <Label required>大气压 (kPa)</Label>
-            <Input type="text" inputMode="decimal" value={pressureStr}
-              onChange={e => setPressureStr((e.target as HTMLInputElement).value)} />
-          </div>
+          <NumberInput
+            label="大气压"
+            unit="kPa"
+            value={pressureStr}
+            onChange={setPressureStr}
+            required
+          />
 
-          <div className={styles.field}>
-            <Label required>输入浓度</Label>
-            <Input type="text" inputMode="decimal" value={inputStr}
-              onChange={e => setInputStr((e.target as HTMLInputElement).value)} />
-          </div>
+          <NumberInput
+            label="输入浓度"
+            value={inputStr}
+            onChange={setInputStr}
+            required
+          />
 
-          <div className={styles.field}>
-            <Label required>输入单位</Label>
+          {/* Unit select */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-sm font-medium text-[var(--app-ink-secondary)]">
+              <span className="text-[var(--app-danger)] mr-0.5">*</span>
+              输入单位
+            </label>
             <select
               value={inputUnit}
-              onChange={(e) => setInputUnit(e.target.value as 'ppm' | 'mg/m3')}
-              style={{ height: 32, borderRadius: 4 }}
+              onChange={(e) =>
+                setInputUnit(e.target.value as "ppm" | "mg/m3")
+              }
+              className="w-full min-h-[42px] px-3 rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink)] text-sm outline-none hover:border-[var(--app-line-strong)] focus:ring-2 focus:ring-[var(--app-primary)] focus:border-[var(--app-primary)] transition-colors"
             >
               <option value="ppm">ppm</option>
               <option value="mg/m3">mg/m³</option>
             </select>
           </div>
         </div>
-
-        <Divider style={{ margin: "20px 0" }}>换算结果</Divider>
-
-        <div className={styles.resultGrid}>
-          <Card style={{ padding: 12 }}>
-            <Title2 style={{ fontSize: 16, marginBottom: 6 }}>结果</Title2>
-            <Body1 style={{ fontWeight: 600, fontSize: 18 }}>
-              {result ? `${result.outputValue.toFixed(2)} ${result.outputUnit}` : "--"}
-            </Body1>
-            <Text size={200} style={{ color: "var(--colorNeutralForeground2)" }}>
-              使用理想气体关系校正：T(℃)、P(kPa)；NMHC 以碳计（ppmC↔mgC/m³）
-            </Text>
-          </Card>
-
-          <Card style={{ padding: 12 }}>
-            <Title2 style={{ fontSize: 16, marginBottom: 6 }}>参数</Title2>
-            <Body1>温度：{temperatureStr === '' || isNaN(parseFloat(temperatureStr.replace(',','.'))) ? "--" : `${parseFloat(temperatureStr.replace(',','.')).toFixed(1)} ℃`}</Body1>
-            <Body1>压力：{pressureStr === '' || isNaN(parseFloat(pressureStr.replace(',','.'))) ? "--" : `${parseFloat(pressureStr.replace(',','.')).toFixed(3)} kPa`}</Body1>
-            <Body1>分子量：{GAS_LIST.find(g => g.key === gas)?.molarMass_g_mol.toFixed(3)} g/mol</Body1>
-          </Card>
-        </div>
       </div>
-    </div>
+
+      {/* Results */}
+      <ResultDisplay
+        title="换算结果"
+        items={[
+          {
+            label: "换算结果",
+            value: result && Number.isFinite(result.outputValue)
+              ? `${result.outputValue.toFixed(2)} ${result.outputUnit}`
+              : "--",
+            status: "success",
+          },
+          {
+            label: "温度",
+            value: tempNum !== null ? `${tempNum.toFixed(1)}` : "--",
+            unit: tempNum !== null ? "℃" : undefined,
+            status: "neutral",
+          },
+          {
+            label: "压力",
+            value: pressNum !== null ? `${pressNum.toFixed(3)}` : "--",
+            unit: pressNum !== null ? "kPa" : undefined,
+            status: "neutral",
+          },
+          {
+            label: "分子量",
+            value: selectedGas
+              ? `${selectedGas.molarMass_g_mol.toFixed(3)}`
+              : "--",
+            unit: selectedGas ? "g/mol" : undefined,
+            status: "neutral",
+          },
+        ]}
+        details={
+          <span>
+            使用理想气体关系校正：T(℃)、P(kPa)；NMHC 以碳计（ppmC↔mgC/m³）
+          </span>
+        }
+      />
+    </CalculatorShell>
   );
 }
-

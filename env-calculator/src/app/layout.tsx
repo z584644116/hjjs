@@ -1,22 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import TopNavigation from "@/components/TopNavigation";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "环境计算器",
-  description: "专业的环境监测计算工具，支持采样嘴计算等功能",
+  description: "专业的环境监测计算工具，支持空气和废气、水质及通用环境公式计算。",
 };
 
 export default function RootLayout({
@@ -25,16 +15,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-CN">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="zh-CN" suppressHydrationWarning>
+      <body>
         <Providers>
-          <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+          <div className="app-shell">
             <TopNavigation />
-            <main style={{ flex: 1 }}>
-              {children}
-            </main>
+            <main className="app-main">{children}</main>
+            <Footer />
           </div>
         </Providers>
       </body>

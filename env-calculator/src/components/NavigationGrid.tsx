@@ -1,173 +1,98 @@
 'use client';
 
-import React from 'react';
+import React, { useDeferredValue, useMemo, useState } from 'react';
 import Link from 'next/link';
-import {
-  Card,
-  Title1,
-  Title2,
-  Body1,
-  Button,
-} from '@fluentui/react-components';
-import {
-  Calculator24Regular,
-  Settings24Regular,
-  Info24Regular,
-} from '@fluentui/react-icons';
+import { Apps24Regular, Search24Regular } from '@fluentui/react-icons';
+import { calculatorCategories, calculatorNavItems, type CalculatorCategory } from '@/constants/navigation';
 
-const navigationItems = [
-  {
-    id: 'sampling-calculator',
-    title: '采样嘴计算',
-    description: '根据烟气参数和仪器规格计算推荐的采样嘴直径',
-    icon: <Calculator24Regular />,
-    href: '/calculator/sampling',
-    available: true,
-  },
-  {
-    id: 'do-saturation',
-    title: '水饱和空气溶解氧计算',
-    description: '按温度(0~40℃)与大气压换算饱和DO与核查示值范围',
-    icon: <Calculator24Regular />,
-    href: '/calculator/do',
-    available: true,
-  },
-  {
-    id: 'ph-calculator',
-    title: 'pH 计算',
-    description: '输入温度，显示5种标准缓冲溶液的当前温度标准值',
-    icon: <Calculator24Regular />,
-    href: '/calculator/ph',
-    available: true,
-  },
-  {
-    id: 'well-calculator',
-    title: '地下水井水体积',
-    description: '输入井参数与水位，计算埋深、井水深度、井水体积',
-    icon: <Calculator24Regular />,
-    href: '/calculator/well',
-    available: true,
-  },
-  {
-    id: 'gas-converter',
-    title: '气体单位换算',
-    description: 'SO2/NO/NO2/CO/NMHC 的 ppm ↔ mg/m³ 换算',
-    icon: <Calculator24Regular />,
-    href: '/calculator/gas',
-    available: true,
-  },
-  {
-    id: 'unorg-suitability',
-    title: '无组织监测适宜度',
-    description: '依据 HJ/T 55-2000 进行适宜度判定',
-    icon: <Calculator24Regular />,
-    href: '/calculator/unorg',
-    available: true,
-  },
-  {
-    id: 'water-quality-qc',
-    title: '水质质量控制分析',
-    description: '多模型水质评价',
-    icon: <Calculator24Regular />,
-    href: '/calculator/wqc',
-    available: true,
-  },
-  {
-    id: 'fluegas-conversion',
-    title: '烟气折算计算',
-    description: '将实测污染物浓度折算为基准氧含量下的污染物浓度',
-    icon: <Calculator24Regular />,
-    href: '/calculator/fluegas',
-    available: true,
-  },
+type ActiveCategory = CalculatorCategory | '全部';
+
+const categories: { key: ActiveCategory; label: string }[] = [
+  { key: '全部', label: '全部' },
+  ...calculatorCategories.map((category) => ({ key: category.key, label: category.label })),
 ];
 
 export default function NavigationGrid() {
+  const [activeCategory, setActiveCategory] = useState<ActiveCategory>('全部');
+  const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query.trim().toLowerCase());
+
+  const displayItems = useMemo(() => {
+    const categoryItems =
+      activeCategory === '全部'
+        ? calculatorNavItems
+        : calculatorNavItems.filter((item) => item.category === activeCategory);
+
+    if (!deferredQuery) return categoryItems;
+
+    return categoryItems.filter((item) =>
+      [item.title, item.shortTitle, item.category, item.badge]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(deferredQuery)),
+    );
+  }, [activeCategory, deferredQuery]);
+
   return (
     <div className="page-container">
-      <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-        <Title1 style={{ marginBottom: '8px' }}>环境计算器</Title1>
-        <Body1 style={{ color: 'var(--colorNeutralForeground2)' }}>
-          专业的环境监测计算工具集
-        </Body1>
-      </div>
-      
-      <div 
-        style={{ 
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-          gap: '20px',
-          maxWidth: '1000px',
-          margin: '0 auto'
-        }}
-      >
-        {navigationItems.map((item) => (
-          <Card
-            key={item.id}
-            style={{
-              padding: '24px',
-              minHeight: '200px',
-              display: 'flex',
-              flexDirection: 'column',
-              cursor: item.available ? 'pointer' : 'not-allowed',
-              opacity: item.available ? 1 : 0.6,
-              transition: 'all 0.2s ease',
-              overflow: 'visible',
-            }}
-          >
-            <div 
-              style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px',
-                marginBottom: '12px'
-              }}
+      <section className="mx-auto max-w-[1160px] space-y-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-1">
+          <div className="text-xs font-medium text-[var(--app-ink-tertiary)]">
+            默认打开: {activeCategory}
+          </div>
+          <h1 className="text-base font-black text-[var(--app-ink)]">{activeCategory}</h1>
+          <div className="flex justify-end">
+            <span className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink-secondary)]">
+              <Apps24Regular className="h-5 w-5" />
+            </span>
+          </div>
+        </div>
+
+        <label className="app-min-search" aria-label="搜索工具">
+          <Search24Regular className="h-5 w-5 shrink-0 text-[var(--app-ink-tertiary)]" />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="搜索"
+            type="search"
+          />
+          {query && (
+            <button type="button" onClick={() => setQuery('')} aria-label="清空搜索">
+              清空
+            </button>
+          )}
+        </label>
+
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+          {categories.map((category) => (
+            <button
+              key={category.key}
+              type="button"
+              onClick={() => setActiveCategory(category.key)}
+              data-active={activeCategory === category.key}
+              className="app-min-tab"
             >
-              <div 
-                style={{ 
-                  color: item.available ? 'var(--colorBrandForeground1)' : 'var(--colorNeutralForeground3)',
-                }}
-              >
-                {item.icon}
-              </div>
-              <Title2 style={{ fontSize: '18px', margin: 0 }}>
-                {item.title}
-              </Title2>
-            </div>
-            
-            <Body1 
-              style={{ 
-                marginBottom: '16px',
-                flex: 1,
-                color: 'var(--colorNeutralForeground2)'
-              }}
-            >
-              {item.description}
-            </Body1>
-            
-            <div>
-              {item.available ? (
-                <Link href={item.href} passHref>
-                  <Button 
-                    appearance="primary"
-                    style={{ width: '100%' }}
-                  >
-                    开始使用
-                  </Button>
-                </Link>
-              ) : (
-                <Button 
-                  appearance="outline"
-                  disabled
-                  style={{ width: '100%' }}
-                >
-                  敬请期待
-                </Button>
-              )}
-            </div>
-          </Card>
-        ))}
-      </div>
+              {category.label}
+            </button>
+          ))}
+        </div>
+
+        {displayItems.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6">
+            {displayItems.map((item) => (
+              <Link key={item.id} href={item.href} className="app-tool-tile" aria-label={item.title}>
+                <span className="app-tool-icon" aria-hidden="true">
+                  {item.icon}
+                </span>
+                <span className="app-tool-title">{item.shortTitle ?? item.title}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl bg-[var(--app-surface)] p-8 text-center text-sm font-medium text-[var(--app-ink-tertiary)]">
+            无结果
+          </div>
+        )}
+      </section>
     </div>
   );
 }
