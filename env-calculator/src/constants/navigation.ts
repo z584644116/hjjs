@@ -14,6 +14,7 @@ export type CalculatorNavItem = {
   id: string;
   title: string;
   shortTitle?: string;
+  subtitle?: string;
   description: string;
   category: CalculatorCategory;
   href: string;
@@ -114,6 +115,7 @@ const v23FormulaTools: CalculatorNavItem[] = [
     id: 'v23-air-volume',
     title: '标准采样体积',
     shortTitle: '采样体积',
+    subtitle: 'Q、t、P、温度换算 Vn',
     description: 'Q、t、P、温度换算 Vn。',
     category: '空气和废气',
     icon: React.createElement(DataUsage24Regular),
@@ -121,7 +123,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-pm-conc',
-    title: 'PM 浓度',
+    title: 'PM 颗粒物浓度',
+    subtitle: '滤膜增重与标准体积换算',
     description: '滤膜增重与标准采样体积计算。',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
@@ -131,6 +134,7 @@ const v23FormulaTools: CalculatorNavItem[] = [
     id: 'v23-stack-pm',
     title: '固定源颗粒物',
     shortTitle: '颗粒物浓度',
+    subtitle: '固定源颗粒物浓度核算',
     description: '捕集质量与标准干烟气体积计算。',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
@@ -138,7 +142,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-gas-flow',
-    title: '烟气流速',
+    title: '烟气等速跟踪率核查',
+    subtitle: '烟气流速、理论流量与偏差判定',
     description: '动压、压力、温度、皮托管系数计算。',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
@@ -146,7 +151,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-aqi',
-    title: 'AQI',
+    title: 'AQI 空气质量指数',
+    subtitle: 'IAQI 分指数与等级判定',
     description: '空气质量指数计算。',
     category: '空气和废气',
     icon: React.createElement(LeafOne24Regular),
@@ -154,7 +160,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-alkalinity-hardness',
-    title: '碱度/硬度',
+    title: '碱度与硬度换算',
+    subtitle: '滴定数据换算为 CaCO3',
     description: '滴定法换算。',
     category: '水质',
     icon: React.createElement(Beaker24Regular),
@@ -162,7 +169,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-mdl-qc',
-    title: 'MDL',
+    title: 'MDL 方法检出限',
+    subtitle: '按 t×s 计算检出限',
     description: '方法检出限。',
     category: '通用与质控',
     icon: React.createElement(DataUsage24Regular),
@@ -170,8 +178,9 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-recovery-qc',
-    title: '加标回收率',
+    title: '加标回收率核查',
     shortTitle: '回收率',
+    subtitle: '加标样与原样对比评估',
     description: '加标回收率。',
     category: '通用与质控',
     icon: React.createElement(Beaker24Regular),
@@ -179,7 +188,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-rsd-qc',
-    title: 'RSD',
+    title: 'RSD 相对标准偏差',
+    subtitle: '重复测定精密度评估',
     description: '相对标准偏差。',
     category: '通用与质控',
     icon: React.createElement(DataUsage24Regular),
@@ -189,6 +199,7 @@ const v23FormulaTools: CalculatorNavItem[] = [
     id: 'v23-soil-moisture',
     title: '土壤含水率',
     shortTitle: '含水率',
+    subtitle: '湿重/干重法含水率计算',
     description: '湿重、干重计算。',
     category: '通用与质控',
     icon: React.createElement(Drop24Regular),
@@ -196,7 +207,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-soil-prep-qc',
-    title: '土壤 QC',
+    title: '土壤制备质控',
+    subtitle: '损失率与过筛率核查',
     description: '制备损失率与过筛率。',
     category: '通用与质控',
     icon: React.createElement(LeafOne24Regular),
@@ -204,7 +216,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-sample-size',
-    title: '样本数',
+    title: '统计样本量估算',
+    subtitle: '按误差与置信系数估算 n',
     description: '统计样本数估算。',
     category: '通用与质控',
     icon: React.createElement(Calculator24Regular),
@@ -212,7 +225,8 @@ const v23FormulaTools: CalculatorNavItem[] = [
   },
   {
     id: 'v23-exceedance',
-    title: '超标倍数',
+    title: '污染物超标倍数核查',
+    subtitle: '标准指数与超标判定',
     description: '标准指数与超标倍数。',
     category: '通用与质控',
     icon: React.createElement(DataUsage24Regular),

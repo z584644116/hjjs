@@ -605,12 +605,12 @@ button {
 
 .app-tool-tile {
   display: grid;
-  min-height: 112px;
+  min-height: 130px;
   place-items: center;
-  gap: 10px;
+  gap: 8px;
   border-radius: 9px;
   background: var(--app-surface);
-  padding: 16px 8px 14px;
+  padding: 14px 8px 12px;
   color: var(--app-ink);
   text-align: center;
   box-shadow: 0 1px 0 rgba(22, 32, 29, 0.03);
@@ -639,13 +639,25 @@ button {
 .app-tool-title {
   display: -webkit-box;
   overflow: hidden;
-  min-height: 34px;
+  min-height: 36px;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
   color: #333;
   font-size: 13px;
+  font-weight: 700;
+  line-height: 18px;
+}
+
+.app-tool-subtitle {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 30px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--app-ink-tertiary);
+  font-size: 11px;
   font-weight: 500;
-  line-height: 17px;
+  line-height: 15px;
 }
 
 .app-action-primary.hidden,
@@ -776,15 +788,27 @@ button {
   }
 
   .app-tool-tile {
-    min-height: 96px;
+    min-height: 112px;
     border-radius: 8px;
-    gap: 8px;
-    padding: 13px 6px 11px;
+    gap: 6px;
+    padding: 11px 6px 10px;
   }
 
   .app-tool-icon svg {
     height: 32px;
     width: 32px;
+  }
+
+  .app-tool-title {
+    min-height: 34px;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .app-tool-subtitle {
+    min-height: 24px;
+    font-size: 10px;
+    line-height: 12px;
   }
 
   .app-number-field {

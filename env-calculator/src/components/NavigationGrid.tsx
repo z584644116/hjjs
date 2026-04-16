@@ -26,7 +26,7 @@ export default function NavigationGrid() {
     if (!deferredQuery) return categoryItems;
 
     return categoryItems.filter((item) =>
-      [item.title, item.shortTitle, item.category, item.badge]
+      [item.title, item.shortTitle, item.subtitle, item.category, item.badge]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(deferredQuery)),
     );
@@ -82,6 +82,7 @@ export default function NavigationGrid() {
                   {item.icon}
                 </span>
                 <span className="app-tool-title">{item.shortTitle ?? item.title}</span>
+                {item.subtitle && <span className="app-tool-subtitle">{item.subtitle}</span>}
               </Link>
             ))}
           </div>

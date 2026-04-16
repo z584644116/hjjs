@@ -1,0 +1,43 @@
+
+> env-calculator@0.1.0 dev
+> next dev --turbopack -p 9999
+
+   ▲ Next.js 15.5.3 (Turbopack)
+   - Local:        http://localhost:9999
+   - Network:      http://198.18.0.1:9999
+
+ ✓ Starting...
+Creating turbopack project { dir: 'D:\\OneDrive\\DM\\应用\\环境计算工具\\env-calculator', testMode: true }
+ ✓ Ready in 2.1s
+ ○ Compiling /api/health ...
+ ✓ Compiled /api/health in 3s
+ GET /api/health 200 in 3658ms
+ GET /api/health 200 in 442ms
+ ○ Compiling / ...
+ ✓ Compiled / in 9.6s
+ GET / 200 in 12793ms
+ ✓ Compiled /favicon.ico in 330ms
+ GET /favicon.ico?favicon.0b3bf435.ico 200 in 702ms
+ ○ Compiling /calculator/wqc ...
+ ✓ Compiled /calculator/wqc in 1470ms
+ GET /calculator/wqc 200 in 1638ms
+ GET / 200 in 188ms
+ ○ Compiling /calculator/unorg ...
+ ✓ Compiled /calculator/unorg in 1508ms
+ GET /calculator/unorg 200 in 1650ms
+ GET / 200 in 177ms
+ ○ Compiling /calculator/sampling ...
+ ✓ Compiled /calculator/sampling in 2.1s
+ GET /calculator/sampling 200 in 2234ms
+ GET / 200 in 197ms
+ ○ Compiling /calculator/v23 ...
+ ✓ Compiled /calculator/v23 in 1343ms
+ GET /calculator/v23?module=air-volume 200 in 1493ms
+ GET / 200 in 249ms
+ GET /calculator/v23?module=pm-conc 200 in 201ms
+ GET / 200 in 213ms
+ ○ Compiling /calculator/do ...
+ ✓ Compiled /calculator/do in 1122ms
+ GET /calculator/do 200 in 1260ms
+ GET / 200 in 174ms
+ GET /calculator/v23?module=mdl-qc 200 in 255ms
