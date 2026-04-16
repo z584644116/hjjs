@@ -1,31 +1,31 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import CalculatorShell from "@/components/CalculatorShell";
 import NumberInput from "@/components/NumberInput";
 import ResultDisplay from "@/components/ResultDisplay";
+import { useUrlState } from "@/hooks/useUrlState";
+import { useRecordHistory } from "@/hooks/useRecordHistory";
 import { computeDO, STANDARD_ATM_KPA } from "@/lib/do";
 
 export default function DOCalculatorPage() {
-  const [pressureStr, setPressureStr] = useState<string>("");
-  const [temperatureStr, setTemperatureStr] = useState<string>("");
+  const [inputs, setInputs] = useUrlState({ P: "", T: "" });
 
   const result = useMemo(() => {
-    const p =
-      pressureStr === ""
-        ? NaN
-        : parseFloat(pressureStr.replace(",", "."));
-    const t =
-      temperatureStr === ""
-        ? NaN
-        : parseFloat(temperatureStr.replace(",", "."));
+    const p = inputs.P === "" ? NaN : parseFloat(inputs.P.replace(",", "."));
+    const t = inputs.T === "" ? NaN : parseFloat(inputs.T.replace(",", "."));
     return computeDO(p, t);
-  }, [pressureStr, temperatureStr]);
+  }, [inputs.P, inputs.T]);
 
-  const handleReset = () => {
-    setPressureStr("");
-    setTemperatureStr("");
-  };
+  const summary = useMemo(() => {
+    if ("error" in result) return "";
+    if (!inputs.P || !inputs.T) return "";
+    return `饱和 DO ${result.standard_value.toFixed(2)} mg/L · T=${inputs.T}℃, P=${inputs.P} kPa`;
+  }, [result, inputs.P, inputs.T]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () => setInputs({ P: "", T: "" });
 
   return (
     <CalculatorShell
@@ -43,20 +43,20 @@ export default function DOCalculatorPage() {
           <NumberInput
             label="大气压"
             unit="kPa"
-            value={pressureStr}
-            onChange={setPressureStr}
+            value={inputs.P}
+            onChange={(v) => setInputs({ P: v })}
             placeholder="例如 101.325"
             required
-            hint={`参考值：标准大气压 ${STANDARD_ATM_KPA} kPa`}
+            hint={`参考值:标准大气压 ${STANDARD_ATM_KPA} kPa`}
           />
           <NumberInput
             label="温度"
             unit="℃"
-            value={temperatureStr}
-            onChange={setTemperatureStr}
+            value={inputs.T}
+            onChange={(v) => setInputs({ T: v })}
             placeholder="0 ~ 40"
             required
-            hint="范围：0 ~ 40 ℃"
+            hint="范围:0 ~ 40 ℃"
           />
         </div>
       </div>
@@ -98,9 +98,7 @@ export default function DOCalculatorPage() {
               status: "neutral",
             },
           ]}
-          details={
-            <span>饱和溶解氧标准值 &plusmn; 0.5 mg/L</span>
-          }
+          details={<span>饱和溶解氧标准值 &plusmn; 0.5 mg/L</span>}
         />
       )}
     </CalculatorShell>

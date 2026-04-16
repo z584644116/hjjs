@@ -1170,3 +1170,319 @@ button {
     transition-duration: 0.001ms !important;
   }
 }
+
+/* =========================================================================
+ * ToolInfoSheet — 工具说明 / 公式 / 标准弹层
+ * 移动端底部抽屉,桌面端右侧抽屉
+ * ========================================================================= */
+
+.app-info-sheet {
+  position: absolute;
+  background: var(--app-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: var(--app-shadow-lg);
+  animation: app-info-sheet-enter 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 767px) {
+  .app-info-sheet {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 88dvh;
+    border-top-left-radius: 28px;
+    border-top-right-radius: 28px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  @keyframes app-info-sheet-enter {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .app-info-sheet {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 460px;
+    max-width: 92vw;
+    border-left: 1px solid var(--app-line);
+  }
+
+  @keyframes app-info-sheet-enter {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
+}
+
+.app-info-sheet-grip {
+  display: none;
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--app-line-strong);
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  .app-info-sheet-grip {
+    display: block;
+  }
+}
+
+.app-info-sheet-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--app-line);
+}
+
+@media (max-width: 767px) {
+  .app-info-sheet-head {
+    padding-top: 24px;
+  }
+}
+
+.app-info-sheet-head h3 {
+  font-size: 18px;
+  font-weight: 900;
+  color: var(--app-ink);
+  line-height: 1.3;
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.app-info-sheet-close {
+  display: grid;
+  place-items: center;
+  height: 40px;
+  width: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--app-line);
+  background: var(--app-surface);
+  color: var(--app-ink-secondary);
+  transition: border-color 160ms ease, color 160ms ease, background-color 160ms ease;
+}
+
+.app-info-sheet-close:hover {
+  border-color: var(--app-line-strong);
+  color: var(--app-ink);
+  background: var(--app-surface-secondary);
+}
+
+.app-info-sheet-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-info-sheet-body section h4 {
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--app-ink-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.app-info-sheet-body section p {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--app-ink);
+}
+
+.app-info-sheet-tip {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--app-primary-light);
+  border-radius: var(--app-radius-sm);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--app-primary);
+  font-weight: 600;
+}
+
+.app-info-sheet-tip > span:first-child {
+  flex-shrink: 0;
+}
+
+.app-info-sheet-formula {
+  background: var(--app-surface-secondary);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-sm);
+  padding: 16px 12px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.app-info-sheet-formula .katex-display {
+  margin: 0;
+}
+
+.app-info-sheet-formula .katex {
+  font-size: 1.05em;
+  color: var(--app-ink);
+}
+
+.app-info-sheet-code {
+  margin-top: 10px;
+  background: var(--app-surface-secondary);
+  border: 1px solid var(--app-line);
+  padding: 12px 14px;
+  border-radius: var(--app-radius-sm);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--app-ink);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.app-info-sheet-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* =========================================================================
+ * PasteBulkInput — 批量粘贴数值输入
+ * ========================================================================= */
+
+.app-paste-bulk {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 12px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-line);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-ink);
+  font-size: 15px;
+  line-height: 1.5;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  resize: vertical;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.app-paste-bulk::placeholder {
+  color: var(--app-ink-tertiary);
+  font-family: inherit;
+}
+
+.app-paste-bulk:focus {
+  outline: none;
+  border-color: var(--app-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-primary) 18%, transparent);
+}
+
+.app-paste-bulk-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.app-paste-bulk-paste {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--app-line);
+  border-radius: 999px;
+  background: var(--app-surface);
+  color: var(--app-primary);
+  font-size: 12px;
+  font-weight: 700;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.app-paste-bulk-paste:hover {
+  border-color: var(--app-primary);
+  background: var(--app-primary-light);
+}
+
+.app-paste-bulk-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.app-paste-bulk-status[data-ok="false"] .app-paste-bulk-count {
+  color: var(--app-warning);
+}
+
+.app-paste-bulk-count {
+  color: var(--app-ink-tertiary);
+  font-weight: 600;
+}
+
+.app-paste-bulk-hint {
+  color: var(--app-ink-tertiary);
+  font-weight: 500;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+/* =========================================================================
+ * ResultDisplay — 导出 PNG 区域样式(截图时的干净背景)
+ * ========================================================================= */
+
+.app-result-export-target {
+  background: var(--app-surface);
+}
+
+.app-result-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.app-result-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+

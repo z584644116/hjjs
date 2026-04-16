@@ -17,6 +17,7 @@ import {
   DataUsage24Regular,
   Dismiss24Regular,
   Drop24Regular,
+  History24Regular,
   Home24Regular,
   LeafOne24Regular,
   Navigation24Regular,
@@ -199,6 +200,15 @@ export default function TopNavigation() {
                 className="flex min-h-[48px] items-center rounded-2xl border border-[var(--app-line)] bg-[var(--app-surface-secondary)] px-4 text-sm font-black text-[var(--app-ink)]"
               >
                 首页工作台
+              </Link>
+
+              <Link
+                href="/history"
+                onClick={() => setDrawerOpen(false)}
+                className="flex min-h-[48px] items-center gap-3 rounded-2xl border border-[var(--app-line)] bg-[var(--app-surface-secondary)] px-4 text-sm font-black text-[var(--app-ink)]"
+              >
+                <History24Regular className="h-5 w-5 text-[var(--app-ink-secondary)]" />
+                <span>计算历史</span>
               </Link>
 
               {groupedLinks.map((domain) => (

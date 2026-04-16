@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 import {
   AirConcentrationMode,
   calculateAirConcentration,
@@ -16,33 +18,38 @@ const modeLabels: Record<AirConcentrationMode, string> = {
 };
 
 export default function AirConcentrationPage() {
-  const [mode, setMode] = useState<AirConcentrationMode>('ambient-pm');
-  const [flowRate, setFlowRate] = useState('16.7');
-  const [samplingMinutes, setSamplingMinutes] = useState('60');
-  const [pressure, setPressure] = useState('101.3');
-  const [temperature, setTemperature] = useState('25');
-  const [weightBefore, setWeightBefore] = useState('150.20');
-  const [weightAfter, setWeightAfter] = useState('152.34');
+  const [inputs, setInputs] = useUrlState({
+    mode: 'ambient-pm',
+    Q: '16.7',
+    t: '60',
+    P: '101.3',
+    T: '25',
+    w1: '150.20',
+    w2: '152.34',
+  });
+
+  const mode: AirConcentrationMode =
+    inputs.mode === 'stack-pm' ? 'stack-pm' : 'ambient-pm';
 
   const result = useMemo(() => calculateAirConcentration({
     mode,
-    flowRateLMin: parseDecimalInput(flowRate),
-    samplingMinutes: parseDecimalInput(samplingMinutes),
-    pressureKPa: parseDecimalInput(pressure),
-    temperatureC: parseDecimalInput(temperature),
-    weightBeforeMg: parseDecimalInput(weightBefore),
-    weightAfterMg: parseDecimalInput(weightAfter),
-  }), [flowRate, mode, pressure, samplingMinutes, temperature, weightAfter, weightBefore]);
+    flowRateLMin: parseDecimalInput(inputs.Q),
+    samplingMinutes: parseDecimalInput(inputs.t),
+    pressureKPa: parseDecimalInput(inputs.P),
+    temperatureC: parseDecimalInput(inputs.T),
+    weightBeforeMg: parseDecimalInput(inputs.w1),
+    weightAfterMg: parseDecimalInput(inputs.w2),
+  }), [mode, inputs.Q, inputs.t, inputs.P, inputs.T, inputs.w1, inputs.w2]);
 
-  const handleReset = () => {
-    setMode('ambient-pm');
-    setFlowRate('');
-    setSamplingMinutes('');
-    setPressure('');
-    setTemperature('');
-    setWeightBefore('');
-    setWeightAfter('');
-  };
+  const summary = useMemo(() => {
+    if ('error' in result) return '';
+    return `${modeLabels[mode]} · 浓度 ${result.concentrationMgM3.toFixed(4)} mg/m³`;
+  }, [result, mode]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () =>
+    setInputs({ mode: 'ambient-pm', Q: '', t: '', P: '', T: '', w1: '', w2: '' });
 
   return (
     <CalculatorShell
@@ -59,7 +66,7 @@ export default function AirConcentrationPage() {
             <button
               key={item}
               type="button"
-              onClick={() => setMode(item)}
+              onClick={() => setInputs({ mode: item })}
               data-active={mode === item}
               className="app-segment"
             >
@@ -69,12 +76,12 @@ export default function AirConcentrationPage() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <NumberInput label="采样流量 Q" unit="L/min" value={flowRate} step="0.1" onChange={setFlowRate} required />
-          <NumberInput label="采样时间 t" unit="min" value={samplingMinutes} onChange={setSamplingMinutes} required />
-          <NumberInput label="采样压力 P" unit="kPa" value={pressure} step="0.1" onChange={setPressure} required />
-          <NumberInput label="采样温度 T" unit="℃" value={temperature} step="0.1" onChange={setTemperature} required />
-          <NumberInput label="采样前重量 w1" unit="mg" value={weightBefore} step="0.01" onChange={setWeightBefore} required />
-          <NumberInput label="采样后重量 w2" unit="mg" value={weightAfter} step="0.01" onChange={setWeightAfter} required />
+          <NumberInput label="采样流量 Q" unit="L/min" value={inputs.Q} step="0.1" onChange={(v) => setInputs({ Q: v })} required />
+          <NumberInput label="采样时间 t" unit="min" value={inputs.t} onChange={(v) => setInputs({ t: v })} required />
+          <NumberInput label="采样压力 P" unit="kPa" value={inputs.P} step="0.1" onChange={(v) => setInputs({ P: v })} required />
+          <NumberInput label="采样温度 T" unit="℃" value={inputs.T} step="0.1" onChange={(v) => setInputs({ T: v })} required />
+          <NumberInput label="采样前重量 w1" unit="mg" value={inputs.w1} step="0.01" onChange={(v) => setInputs({ w1: v })} required />
+          <NumberInput label="采样后重量 w2" unit="mg" value={inputs.w2} step="0.01" onChange={(v) => setInputs({ w2: v })} required />
         </div>
       </section>
 
@@ -93,7 +100,7 @@ export default function AirConcentrationPage() {
             { label: '颗粒物质量', value: result.particleMassMg.toFixed(4), unit: 'mg' },
             { label: '颗粒物浓度', value: result.concentrationMgM3.toFixed(4), unit: 'mg/m³', status: 'success' },
           ]}
-          details="C = (w2 - w1) / Vn，其中 Vn 使用采样流量、时间、压力和温度换算。"
+          details="C = (w2 - w1) / Vn,其中 Vn 使用采样流量、时间、压力和温度换算。"
         />
       )}
     </CalculatorShell>

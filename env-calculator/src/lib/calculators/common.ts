@@ -55,3 +55,54 @@ export function parseNumberList(value: string): number[] {
     .map(parseDecimalInput)
     .filter(Number.isFinite);
 }
+
+function sanitizeMantissa(s: string): string {
+  if (!s) return '';
+  // 尾数不允许 +
+  let r = s.replace(/\+/g, '');
+  // 第一个字符可为 -,其后 - 全部剔除
+  if (r.length > 1) {
+    r = r[0] === '-'
+      ? '-' + r.slice(1).replace(/-/g, '')
+      : r.replace(/-/g, '');
+  }
+  // 最多一个小数点
+  const parts = r.split('.');
+  if (parts.length > 2) r = parts[0] + '.' + parts.slice(1).join('');
+  return r;
+}
+
+function sanitizeExponent(s: string): string {
+  if (!s) return '';
+  // 指数不允许小数点
+  const stripped = s.replace(/\./g, '');
+  const first = stripped[0];
+  const sign = first === '+' || first === '-' ? first : '';
+  const digits = stripped.slice(sign ? 1 : 0).replace(/[+\-]/g, '');
+  return sign + digits;
+}
+
+/**
+ * 清洗数值输入字符串,保留用户打字的中间态(如 "1.","-","1e","1e-")。
+ * 支持:
+ *   - 可选的开头负号
+ *   - 小数点(仅尾数,最多一个),`,` 自动转 `.`
+ *   - 可选的科学计数法 e/E,后接可选 +/- 再接数字
+ *
+ * 仅做字符层面的合法性过滤,不做完整性校验。解析成数字请用 `parseDecimalInput`。
+ */
+export function sanitizeNumericInput(raw: string): string {
+  if (!raw) return '';
+  let s = raw.replace(/,/g, '.');
+  s = s.replace(/[^0-9.+\-eE]/g, '');
+  if (!s) return '';
+
+  const eIndex = s.search(/[eE]/);
+  if (eIndex === -1) return sanitizeMantissa(s);
+
+  const mantissa = s.slice(0, eIndex);
+  const eChar = s[eIndex];
+  // 仅保留第一个 e/E,之后出现的全部剔除
+  const after = s.slice(eIndex + 1).replace(/[eE]/g, '');
+  return sanitizeMantissa(mantissa) + eChar + sanitizeExponent(after);
+}

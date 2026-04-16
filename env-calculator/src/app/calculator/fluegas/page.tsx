@@ -1,47 +1,40 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Card, Divider } from '@fluentui/react-components';
 import { calculateFlueGasConversion } from '@/lib/fluegas';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 
 export default function FlueGasCalculatorPage() {
-  // 输入状态
-  const [measuredConcentrationStr, setMeasuredConcentrationStr] = useState<string>('');
-  const [referenceO2Str, setReferenceO2Str] = useState<string>('');
-  const [measuredO2Str, setMeasuredO2Str] = useState<string>('');
+  const [inputs, setInputs] = useUrlState({ c: '', ro2: '', mo2: '' });
 
-  // 使用 useMemo 计算结果
   const result = useMemo(() => {
-    const measuredConc = measuredConcentrationStr === ''
-      ? NaN
-      : parseFloat(measuredConcentrationStr.replace(',', '.'));
-
-    const refO2 = referenceO2Str === ''
-      ? NaN
-      : parseFloat(referenceO2Str.replace(',', '.'));
-
-    const measO2 = measuredO2Str === ''
-      ? NaN
-      : parseFloat(measuredO2Str.replace(',', '.'));
-
+    const measuredConc = inputs.c === '' ? NaN : parseFloat(inputs.c.replace(',', '.'));
+    const refO2 = inputs.ro2 === '' ? NaN : parseFloat(inputs.ro2.replace(',', '.'));
+    const measO2 = inputs.mo2 === '' ? NaN : parseFloat(inputs.mo2.replace(',', '.'));
     return calculateFlueGasConversion(measuredConc, refO2, measO2);
-  }, [measuredConcentrationStr, referenceO2Str, measuredO2Str]);
+  }, [inputs.c, inputs.ro2, inputs.mo2]);
 
   const hasError = 'error' in result;
 
-  const handleReset = () => {
-    setMeasuredConcentrationStr('');
-    setReferenceO2Str('');
-    setMeasuredO2Str('');
-  };
+  const summary = useMemo(() => {
+    if (hasError) return '';
+    if (!inputs.c || !inputs.ro2 || !inputs.mo2) return '';
+    return `折算浓度 ${result.convertedConcentration.toFixed(2)} · 实测 ${inputs.c} / 基准 O2 ${inputs.ro2}% / 实测 O2 ${inputs.mo2}%`;
+  }, [hasError, result, inputs.c, inputs.ro2, inputs.mo2]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () => setInputs({ c: '', ro2: '', mo2: '' });
 
   return (
     <CalculatorShell
       title="烟气折算计算"
-      description="根据烟气排放标准，将实测污染物浓度折算为基准氧含量下的污染物浓度"
+      description="根据烟气排放标准,将实测污染物浓度折算为基准氧含量下的污染物浓度"
       actions={
         <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
           重置
@@ -50,7 +43,7 @@ export default function FlueGasCalculatorPage() {
     >
       {/* 公式提示 */}
       <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">
-        <span className="font-semibold">计算公式：</span>
+        <span className="font-semibold">计算公式:</span>
         折算后浓度 = 实测浓度 × (21 - 基准氧含量) / (21 - 实测氧含量)
       </div>
 
@@ -60,29 +53,29 @@ export default function FlueGasCalculatorPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <NumberInput
             label="实测污染物浓度"
-            value={measuredConcentrationStr}
-            onChange={setMeasuredConcentrationStr}
+            value={inputs.c}
+            onChange={(v) => setInputs({ c: v })}
             placeholder="例如 150"
             required
-            hint="输入数值（无需单位，输出与输入单位一致）"
+            hint="输入数值(无需单位,输出与输入单位一致)"
           />
           <NumberInput
             label="基准氧含量"
             unit="%"
-            value={referenceO2Str}
-            onChange={setReferenceO2Str}
+            value={inputs.ro2}
+            onChange={(v) => setInputs({ ro2: v })}
             placeholder="例如 6"
             required
-            hint="范围：0-21%"
+            hint="范围:0-21%"
           />
           <NumberInput
             label="实测氧含量"
             unit="%"
-            value={measuredO2Str}
-            onChange={setMeasuredO2Str}
+            value={inputs.mo2}
+            onChange={(v) => setInputs({ mo2: v })}
             placeholder="例如 13.09"
             required
-            hint="范围：0-21%（必须小于21%）"
+            hint="范围:0-21%(必须小于 21%)"
           />
         </div>
       </Card>
@@ -110,17 +103,17 @@ export default function FlueGasCalculatorPage() {
             },
             {
               label: '实测浓度',
-              value: measuredConcentrationStr || '-',
+              value: inputs.c || '-',
               status: 'neutral',
             },
             {
               label: '基准氧含量',
-              value: referenceO2Str ? `${referenceO2Str}%` : '-',
+              value: inputs.ro2 ? `${inputs.ro2}%` : '-',
               status: 'neutral',
             },
             {
               label: '实测氧含量',
-              value: measuredO2Str ? `${measuredO2Str}%` : '-',
+              value: inputs.mo2 ? `${inputs.mo2}%` : '-',
               status: 'neutral',
             },
           ]}

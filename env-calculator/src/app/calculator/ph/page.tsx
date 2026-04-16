@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import CalculatorShell from "@/components/CalculatorShell";
 import NumberInput from "@/components/NumberInput";
+import { useUrlState } from "@/hooks/useUrlState";
+import { useRecordHistory } from "@/hooks/useRecordHistory";
 import { computePHStandardValues } from "@/lib/ph";
 
 function formatValue(value: number, digits: number) {
@@ -10,19 +12,25 @@ function formatValue(value: number, digits: number) {
 }
 
 export default function PHCalculatorPage() {
-  const [temperatureStr, setTemperatureStr] = useState<string>("25.0");
+  const [inputs, setInputs] = useUrlState({ T: "25.0" });
 
   const result = useMemo(() => {
     const temperature =
-      temperatureStr.trim() === ""
+      inputs.T.trim() === ""
         ? NaN
-        : parseFloat(temperatureStr.replace(",", "."));
+        : parseFloat(inputs.T.replace(",", "."));
     return computePHStandardValues(temperature);
-  }, [temperatureStr]);
+  }, [inputs.T]);
 
-  const handleReset = () => {
-    setTemperatureStr("");
-  };
+  const summary = useMemo(() => {
+    if ("error" in result) return "";
+    if (!inputs.T.trim()) return "";
+    return `pH 标准值 · T=${inputs.T}℃`;
+  }, [result, inputs.T]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () => setInputs({ T: "" });
 
   return (
     <CalculatorShell
@@ -37,8 +45,8 @@ export default function PHCalculatorPage() {
         <NumberInput
           label="温度"
           unit="℃"
-          value={temperatureStr}
-          onChange={setTemperatureStr}
+          value={inputs.T}
+          onChange={(v) => setInputs({ T: v })}
           placeholder="25.0"
           required
         />

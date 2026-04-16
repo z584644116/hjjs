@@ -1,46 +1,49 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 import { calculateIsokineticFlow, parseDecimalInput } from '@/lib/calculators';
 
 export default function IsokineticPage() {
-  const [dynamicPressure, setDynamicPressure] = useState('60');
-  const [atmosphericPressure, setAtmosphericPressure] = useState('101.3');
-  const [staticPressure, setStaticPressure] = useState('-1.2');
-  const [temperature, setTemperature] = useState('120');
-  const [pitotCoefficient, setPitotCoefficient] = useState('0.84');
-  const [gasDensity, setGasDensity] = useState('');
-  const [nozzleDiameter, setNozzleDiameter] = useState('8');
-  const [actualFlow, setActualFlow] = useState('12');
+  const [inputs, setInputs] = useUrlState({
+    dp: '60',
+    ba: '101.3',
+    ps: '-1.2',
+    ts: '120',
+    kp: '0.84',
+    rho: '',
+    d: '8',
+    q: '12',
+  });
 
   const result = useMemo(() => {
-    const density = parseDecimalInput(gasDensity);
+    const density = parseDecimalInput(inputs.rho);
 
     return calculateIsokineticFlow({
-      dynamicPressurePa: parseDecimalInput(dynamicPressure),
-      atmosphericPressureKPa: parseDecimalInput(atmosphericPressure),
-      staticPressureKPa: parseDecimalInput(staticPressure),
-      temperatureC: parseDecimalInput(temperature),
-      pitotCoefficient: parseDecimalInput(pitotCoefficient),
+      dynamicPressurePa: parseDecimalInput(inputs.dp),
+      atmosphericPressureKPa: parseDecimalInput(inputs.ba),
+      staticPressureKPa: parseDecimalInput(inputs.ps),
+      temperatureC: parseDecimalInput(inputs.ts),
+      pitotCoefficient: parseDecimalInput(inputs.kp),
       gasDensityKgM3: Number.isFinite(density) ? density : undefined,
-      nozzleDiameterMm: parseDecimalInput(nozzleDiameter),
-      actualFlowLMin: parseDecimalInput(actualFlow),
+      nozzleDiameterMm: parseDecimalInput(inputs.d),
+      actualFlowLMin: parseDecimalInput(inputs.q),
     });
-  }, [actualFlow, atmosphericPressure, dynamicPressure, gasDensity, nozzleDiameter, pitotCoefficient, staticPressure, temperature]);
+  }, [inputs.dp, inputs.ba, inputs.ps, inputs.ts, inputs.kp, inputs.rho, inputs.d, inputs.q]);
 
-  const handleReset = () => {
-    setDynamicPressure('');
-    setAtmosphericPressure('');
-    setStaticPressure('');
-    setTemperature('');
-    setPitotCoefficient('');
-    setGasDensity('');
-    setNozzleDiameter('');
-    setActualFlow('');
-  };
+  const summary = useMemo(() => {
+    if ('error' in result) return '';
+    return `等速跟踪率 ${result.trackingRatePercent.toFixed(2)}% · ${result.isWithinTolerance ? '符合' : '超出 ±10%'}`;
+  }, [result]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () =>
+    setInputs({ dp: '', ba: '', ps: '', ts: '', kp: '', rho: '', d: '', q: '' });
 
   return (
     <CalculatorShell
@@ -53,14 +56,14 @@ export default function IsokineticPage() {
     >
       <section className="app-panel p-4 md:p-5">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <NumberInput label="动压 Pd" unit="Pa" value={dynamicPressure} onChange={setDynamicPressure} required />
-          <NumberInput label="大气压 Ba" unit="kPa" value={atmosphericPressure} step="0.1" onChange={setAtmosphericPressure} required />
-          <NumberInput label="静压 Ps" unit="kPa" value={staticPressure} step="0.1" onChange={setStaticPressure} required />
-          <NumberInput label="烟气温度 ts" unit="℃" value={temperature} step="0.1" onChange={setTemperature} required />
-          <NumberInput label="皮托管系数 Kp" value={pitotCoefficient} step="0.01" onChange={setPitotCoefficient} required />
-          <NumberInput label="烟气密度" unit="kg/m³" value={gasDensity} placeholder="留空自动估算" onChange={setGasDensity} />
-          <NumberInput label="采样嘴直径" unit="mm" value={nozzleDiameter} onChange={setNozzleDiameter} required />
-          <NumberInput label="实际采样流量" unit="L/min" value={actualFlow} onChange={setActualFlow} required />
+          <NumberInput label="动压 Pd" unit="Pa" value={inputs.dp} onChange={(v) => setInputs({ dp: v })} required />
+          <NumberInput label="大气压 Ba" unit="kPa" value={inputs.ba} step="0.1" onChange={(v) => setInputs({ ba: v })} required />
+          <NumberInput label="静压 Ps" unit="kPa" value={inputs.ps} step="0.1" onChange={(v) => setInputs({ ps: v })} required />
+          <NumberInput label="烟气温度 ts" unit="℃" value={inputs.ts} step="0.1" onChange={(v) => setInputs({ ts: v })} required />
+          <NumberInput label="皮托管系数 Kp" value={inputs.kp} step="0.01" onChange={(v) => setInputs({ kp: v })} required />
+          <NumberInput label="烟气密度" unit="kg/m³" value={inputs.rho} placeholder="留空自动估算" onChange={(v) => setInputs({ rho: v })} />
+          <NumberInput label="采样嘴直径" unit="mm" value={inputs.d} onChange={(v) => setInputs({ d: v })} required />
+          <NumberInput label="实际采样流量" unit="L/min" value={inputs.q} onChange={(v) => setInputs({ q: v })} required />
         </div>
       </section>
 

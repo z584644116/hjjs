@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import FormulaModuleShell, { FormulaModuleOption } from '@/components/FormulaModuleShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 import {
   calculateSoilMoisture,
   calculateSoilPrepLoss,
@@ -27,43 +29,51 @@ const soilModules: FormulaModuleOption[] = [
     title: '制备质控',
     group: '样品制备',
     description: '同步核查制备损失量、损失率和过筛率。',
-    formula: '损失率 = 损失量 / 制备前重量 × 100%；过筛率 = 过筛重量 / 总重量 × 100%',
+    formula: '损失率 = 损失量 / 制备前重量 × 100%;过筛率 = 过筛重量 / 总重量 × 100%',
   },
 ];
 
 export default function SoilQcPage() {
-  const [activeTab, setActiveTab] = useState<SoilTab>('moisture');
-  const [wetWeight, setWetWeight] = useState('125.4');
-  const [dryWeight, setDryWeight] = useState('103.2');
-  const [beforeWeight, setBeforeWeight] = useState('500');
-  const [afterWeight, setAfterWeight] = useState('496');
-  const [passedWeight, setPassedWeight] = useState('480');
-  const [totalWeight, setTotalWeight] = useState('500');
+  const [inputs, setInputs] = useUrlState({
+    tab: 'moisture',
+    wet: '125.4',
+    dry: '103.2',
+    before: '500',
+    after: '496',
+    passed: '480',
+    total: '500',
+  });
+
+  const activeTab: SoilTab = inputs.tab === 'prep' ? 'prep' : 'moisture';
 
   const moistureResult = useMemo(() => calculateSoilMoisture({
-    wetWeightG: parseDecimalInput(wetWeight),
-    dryWeightG: parseDecimalInput(dryWeight),
-  }), [dryWeight, wetWeight]);
+    wetWeightG: parseDecimalInput(inputs.wet),
+    dryWeightG: parseDecimalInput(inputs.dry),
+  }), [inputs.wet, inputs.dry]);
 
   const lossResult = useMemo(() => calculateSoilPrepLoss({
-    beforeWeightG: parseDecimalInput(beforeWeight),
-    afterWeightG: parseDecimalInput(afterWeight),
-  }), [afterWeight, beforeWeight]);
+    beforeWeightG: parseDecimalInput(inputs.before),
+    afterWeightG: parseDecimalInput(inputs.after),
+  }), [inputs.before, inputs.after]);
 
   const sieveResult = useMemo(() => calculateSoilSieveRate({
-    passedWeightG: parseDecimalInput(passedWeight),
-    totalWeightG: parseDecimalInput(totalWeight),
-  }), [passedWeight, totalWeight]);
+    passedWeightG: parseDecimalInput(inputs.passed),
+    totalWeightG: parseDecimalInput(inputs.total),
+  }), [inputs.passed, inputs.total]);
 
-  const handleReset = () => {
-    setActiveTab('moisture');
-    setWetWeight('');
-    setDryWeight('');
-    setBeforeWeight('');
-    setAfterWeight('');
-    setPassedWeight('');
-    setTotalWeight('');
-  };
+  const summary = useMemo(() => {
+    if (activeTab === 'moisture') {
+      if ('error' in moistureResult) return '';
+      return `含水率 ${moistureResult.moisturePercent.toFixed(2)}% · 水分 ${moistureResult.waterWeightG.toFixed(4)} g`;
+    }
+    if ('error' in lossResult || 'error' in sieveResult) return '';
+    return `损失率 ${lossResult.lossPercent.toFixed(2)}% · 过筛率 ${sieveResult.sievePercent.toFixed(2)}%`;
+  }, [activeTab, moistureResult, lossResult, sieveResult]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () =>
+    setInputs({ tab: 'moisture', wet: '', dry: '', before: '', after: '', passed: '', total: '' });
 
   return (
     <CalculatorShell
@@ -77,7 +87,7 @@ export default function SoilQcPage() {
       <FormulaModuleShell
         modules={soilModules}
         activeKey={activeTab}
-        onChange={(key) => setActiveTab(key as SoilTab)}
+        onChange={(key) => setInputs({ tab: key })}
         navigationLabel="质控模块"
         countUnit="个模块"
         switchLabel="切换模块"
@@ -88,15 +98,15 @@ export default function SoilQcPage() {
         <section className="app-panel p-4 md:p-5">
           {activeTab === 'moisture' ? (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <NumberInput label="湿重" unit="g" value={wetWeight} onChange={setWetWeight} required />
-              <NumberInput label="干重" unit="g" value={dryWeight} onChange={setDryWeight} required />
+              <NumberInput label="湿重" unit="g" value={inputs.wet} onChange={(v) => setInputs({ wet: v })} required />
+              <NumberInput label="干重" unit="g" value={inputs.dry} onChange={(v) => setInputs({ dry: v })} required />
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <NumberInput label="制备前重量" unit="g" value={beforeWeight} onChange={setBeforeWeight} required />
-              <NumberInput label="制备后重量" unit="g" value={afterWeight} onChange={setAfterWeight} required />
-              <NumberInput label="过筛重量" unit="g" value={passedWeight} onChange={setPassedWeight} required />
-              <NumberInput label="总重量" unit="g" value={totalWeight} onChange={setTotalWeight} required />
+              <NumberInput label="制备前重量" unit="g" value={inputs.before} onChange={(v) => setInputs({ before: v })} required />
+              <NumberInput label="制备后重量" unit="g" value={inputs.after} onChange={(v) => setInputs({ after: v })} required />
+              <NumberInput label="过筛重量" unit="g" value={inputs.passed} onChange={(v) => setInputs({ passed: v })} required />
+              <NumberInput label="总重量" unit="g" value={inputs.total} onChange={(v) => setInputs({ total: v })} required />
             </div>
           )}
         </section>

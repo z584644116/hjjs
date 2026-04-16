@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useId } from 'react';
+import { sanitizeNumericInput } from '@/lib/calculators';
 
 interface NumberInputProps {
   label: string;
@@ -37,16 +38,7 @@ export default function NumberInput({
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      let raw = e.target.value.replace(',', '.');
-      raw = raw.replace(/[^0-9.\-]/g, '');
-      if (raw.length > 1) {
-        raw = raw[0] === '-' ? '-' + raw.slice(1).replace(/-/g, '') : raw.replace(/-/g, '');
-      }
-      const parts = raw.split('.');
-      if (parts.length > 2) {
-        raw = parts[0] + '.' + parts.slice(1).join('');
-      }
-      onChange(raw);
+      onChange(sanitizeNumericInput(e.target.value));
     },
     [onChange],
   );

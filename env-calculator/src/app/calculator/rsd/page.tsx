@@ -1,18 +1,26 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
+import PasteBulkInput from '@/components/PasteBulkInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 import { calculateRsd, parseNumberList } from '@/lib/calculators';
 
 export default function RsdPage() {
-  const [values, setValues] = useState('1.02, 1.01, 1.04, 1.03');
-  const parsedValues = useMemo(() => parseNumberList(values), [values]);
+  const [inputs, setInputs] = useUrlState({ v: '1.02, 1.01, 1.04, 1.03' });
+  const parsedValues = useMemo(() => parseNumberList(inputs.v), [inputs.v]);
   const result = useMemo(() => calculateRsd(parsedValues), [parsedValues]);
 
-  const handleReset = () => {
-    setValues('');
-  };
+  const summary = useMemo(() => {
+    if ('error' in result) return '';
+    return `RSD ${result.rsdPercent.toFixed(2)}% · 均值 ${result.average.toFixed(4)} · n=${result.count}`;
+  }, [result]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () => setInputs({ v: '' });
 
   return (
     <CalculatorShell
@@ -24,17 +32,15 @@ export default function RsdPage() {
       }
     >
       <section className="app-panel p-4 md:p-5">
-        <div className="app-number-field">
-          <label className="app-number-label" htmlFor="rsd-values">测定值</label>
-          <textarea
-            id="rsd-values"
-            value={values}
-            onChange={(event) => setValues(event.target.value)}
-            placeholder="至少 2 个有效值，可用空格、逗号、分号或换行分隔"
-            className="min-h-28 w-full resize-y rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-transparent px-3 py-2 text-base text-[var(--app-ink)] outline-none transition-colors focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary-light)]"
-          />
-          <span className="app-number-helper">已识别 {parsedValues.length} 个有效值。</span>
-        </div>
+        <PasteBulkInput
+          label="测定值"
+          value={inputs.v}
+          onChange={(v) => setInputs({ v })}
+          placeholder="至少 2 个有效值,可用空格、逗号、分号或换行分隔"
+          hint="支持科学计数法 1.2e-5"
+          minValues={2}
+          required
+        />
       </section>
 
       {'error' in result ? (
@@ -51,7 +57,7 @@ export default function RsdPage() {
             { label: '样本标准偏差 s', value: result.standardDeviation.toFixed(6) },
             { label: 'RSD', value: result.rsdPercent.toFixed(2), unit: '%', status: result.rsdPercent <= 10 ? 'success' : 'warning' },
           ]}
-          details={`原始有效值：${parsedValues.join('，')}`}
+          details={`原始有效值:${parsedValues.join(', ')}`}
         />
       )}
     </CalculatorShell>

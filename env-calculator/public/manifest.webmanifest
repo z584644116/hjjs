@@ -1,0 +1,28 @@
+{
+  "name": "环境计算器",
+  "short_name": "环境计算",
+  "description": "面向环境监测现场与实验室的专业即时计算工具,覆盖空气、水质、土壤、质控与工程设计核算。",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f7f6",
+  "theme_color": "#0f766e",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities", "education"]
+}

@@ -11,4 +11,6 @@ export const STORAGE_KEYS = {
   AUTH_MODE: 'env_calc_auth_mode',
   USER_DATA: 'env_calc_user_data',
   CURRENT_USER: 'env_calc_current_user',
+  FAVORITES: 'env_calc_favorites',
+  HISTORY: 'env_calc_history',
 };

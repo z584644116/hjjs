@@ -1,33 +1,35 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { GAS_LIST, convertGasUnits, GasKey } from "@/lib/gas";
 import CalculatorShell from "@/components/CalculatorShell";
 import NumberInput from "@/components/NumberInput";
 import ResultDisplay from "@/components/ResultDisplay";
+import { useUrlState } from "@/hooks/useUrlState";
+import { useRecordHistory } from "@/hooks/useRecordHistory";
 
 export default function GasConverterPage() {
-  const [gas, setGas] = useState<GasKey>("SO2");
-  const [temperatureStr, setTemperatureStr] = useState<string>("0");
-  const [pressureStr, setPressureStr] = useState<string>("101.325");
-  const [inputStr, setInputStr] = useState<string>("");
-  const [inputUnit, setInputUnit] = useState<"ppm" | "mg/m3">("ppm");
+  const [inputs, setInputs] = useUrlState({
+    gas: "SO2",
+    T: "0",
+    P: "101.325",
+    v: "",
+    unit: "ppm",
+  });
+
+  const gas: GasKey = GAS_LIST.some((g) => g.key === inputs.gas)
+    ? (inputs.gas as GasKey)
+    : "SO2";
+  const inputUnit: "ppm" | "mg/m3" = inputs.unit === "mg/m3" ? "mg/m3" : "ppm";
 
   const result = useMemo(() => {
-    const t =
-      temperatureStr === ""
-        ? NaN
-        : parseFloat(temperatureStr.replace(",", "."));
-    const p =
-      pressureStr === ""
-        ? NaN
-        : parseFloat(pressureStr.replace(",", "."));
-    const v =
-      inputStr === "" ? NaN : parseFloat(inputStr.replace(",", "."));
+    const t = inputs.T === "" ? NaN : parseFloat(inputs.T.replace(",", "."));
+    const p = inputs.P === "" ? NaN : parseFloat(inputs.P.replace(",", "."));
+    const val = inputs.v === "" ? NaN : parseFloat(inputs.v.replace(",", "."));
     try {
       return convertGasUnits({
         gas,
-        inputValue: v,
+        inputValue: val,
         inputUnit,
         temperatureC: t,
         pressureKPa: p,
@@ -36,26 +38,28 @@ export default function GasConverterPage() {
     } catch {
       return null;
     }
-  }, [gas, temperatureStr, pressureStr, inputStr, inputUnit]);
+  }, [gas, inputs.T, inputs.P, inputs.v, inputUnit]);
 
   const selectedGas = GAS_LIST.find((g) => g.key === gas);
 
   const tempNum =
-    temperatureStr === "" || isNaN(parseFloat(temperatureStr.replace(",", ".")))
+    inputs.T === "" || isNaN(parseFloat(inputs.T.replace(",", ".")))
       ? null
-      : parseFloat(temperatureStr.replace(",", "."));
+      : parseFloat(inputs.T.replace(",", "."));
   const pressNum =
-    pressureStr === "" || isNaN(parseFloat(pressureStr.replace(",", ".")))
+    inputs.P === "" || isNaN(parseFloat(inputs.P.replace(",", ".")))
       ? null
-      : parseFloat(pressureStr.replace(",", "."));
+      : parseFloat(inputs.P.replace(",", "."));
 
-  const handleReset = () => {
-    setGas("SO2");
-    setTemperatureStr("");
-    setPressureStr("");
-    setInputStr("");
-    setInputUnit("ppm");
-  };
+  const summary = useMemo(() => {
+    if (!result || !Number.isFinite(result.outputValue) || inputs.v === "") return "";
+    return `${gas}: ${inputs.v} ${inputUnit} → ${result.outputValue.toFixed(2)} ${result.outputUnit}`;
+  }, [result, gas, inputs.v, inputUnit]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () =>
+    setInputs({ gas: "SO2", T: "", P: "", v: "", unit: "ppm" });
 
   return (
     <CalculatorShell
@@ -67,10 +71,8 @@ export default function GasConverterPage() {
         </button>
       }
     >
-      {/* Input Card */}
       <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)] p-5">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Gas select */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[var(--app-ink-secondary)]">
               <span className="text-[var(--app-danger)] mr-0.5">*</span>
@@ -78,7 +80,7 @@ export default function GasConverterPage() {
             </label>
             <select
               value={gas}
-              onChange={(e) => setGas(e.target.value as GasKey)}
+              onChange={(e) => setInputs({ gas: e.target.value as GasKey })}
               className="w-full min-h-[42px] px-3 rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink)] text-sm outline-none hover:border-[var(--app-line-strong)] focus:ring-2 focus:ring-[var(--app-primary)] focus:border-[var(--app-primary)] transition-colors"
             >
               {GAS_LIST.map((g) => (
@@ -97,27 +99,26 @@ export default function GasConverterPage() {
           <NumberInput
             label="温度"
             unit="℃"
-            value={temperatureStr}
-            onChange={setTemperatureStr}
+            value={inputs.T}
+            onChange={(v) => setInputs({ T: v })}
             required
           />
 
           <NumberInput
             label="大气压"
             unit="kPa"
-            value={pressureStr}
-            onChange={setPressureStr}
+            value={inputs.P}
+            onChange={(v) => setInputs({ P: v })}
             required
           />
 
           <NumberInput
             label="输入浓度"
-            value={inputStr}
-            onChange={setInputStr}
+            value={inputs.v}
+            onChange={(v) => setInputs({ v })}
             required
           />
 
-          {/* Unit select */}
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-[var(--app-ink-secondary)]">
               <span className="text-[var(--app-danger)] mr-0.5">*</span>
@@ -125,9 +126,7 @@ export default function GasConverterPage() {
             </label>
             <select
               value={inputUnit}
-              onChange={(e) =>
-                setInputUnit(e.target.value as "ppm" | "mg/m3")
-              }
+              onChange={(e) => setInputs({ unit: e.target.value })}
               className="w-full min-h-[42px] px-3 rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink)] text-sm outline-none hover:border-[var(--app-line-strong)] focus:ring-2 focus:ring-[var(--app-primary)] focus:border-[var(--app-primary)] transition-colors"
             >
               <option value="ppm">ppm</option>
@@ -137,7 +136,6 @@ export default function GasConverterPage() {
         </div>
       </div>
 
-      {/* Results */}
       <ResultDisplay
         title="换算结果"
         items={[
@@ -171,7 +169,7 @@ export default function GasConverterPage() {
         ]}
         details={
           <span>
-            使用理想气体关系校正：T(℃)、P(kPa)；NMHC 以碳计（ppmC↔mgC/m³）
+            使用理想气体关系校正:T(℃)、P(kPa);NMHC 以碳计(ppmC↔mgC/m³)
           </span>
         }
       />

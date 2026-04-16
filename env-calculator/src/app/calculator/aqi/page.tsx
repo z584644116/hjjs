@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { useUrlState } from '@/hooks/useUrlState';
+import { useRecordHistory } from '@/hooks/useRecordHistory';
 import {
   AQI_POLLUTANTS,
   AqiPollutant,
@@ -13,19 +15,27 @@ import {
 } from '@/lib/calculators';
 
 export default function AqiPage() {
-  const [pollutant, setPollutant] = useState<AqiPollutant>('PM2_5_24H');
-  const [concentration, setConcentration] = useState('55');
+  const [inputs, setInputs] = useUrlState({ p: 'PM2_5_24H', c: '55' });
+
+  const pollutant: AqiPollutant = AQI_POLLUTANTS.some((x) => x.key === inputs.p)
+    ? (inputs.p as AqiPollutant)
+    : 'PM2_5_24H';
 
   const info = getAqiPollutantInfo(pollutant);
   const result = useMemo(
-    () => calculateAqi(pollutant, parseDecimalInput(concentration)),
-    [concentration, pollutant],
+    () => calculateAqi(pollutant, parseDecimalInput(inputs.c)),
+    [inputs.c, pollutant],
   );
 
-  const handleReset = () => {
-    setPollutant('PM2_5_24H');
-    setConcentration('');
-  };
+  const summary = useMemo(() => {
+    if ('error' in result) return '';
+    if (inputs.c.trim() === '') return '';
+    return `${info.name} ${inputs.c} ${info.unit} → IAQI ${result.iaqi.toFixed(0)} · ${result.level}`;
+  }, [result, info.name, info.unit, inputs.c]);
+
+  useRecordHistory(summary);
+
+  const handleReset = () => setInputs({ p: 'PM2_5_24H', c: '' });
 
   return (
     <CalculatorShell
@@ -45,7 +55,7 @@ export default function AqiPage() {
                 id="aqi-pollutant"
                 className="app-form-control px-3"
                 value={pollutant}
-                onChange={(event) => setPollutant(event.target.value as AqiPollutant)}
+                onChange={(event) => setInputs({ p: event.target.value })}
               >
                 {AQI_POLLUTANTS.map((item) => (
                   <option key={item.key} value={item.key}>{item.name}</option>
@@ -53,7 +63,13 @@ export default function AqiPage() {
               </select>
             </div>
           </div>
-          <NumberInput label="污染物浓度" unit={info.unit} value={concentration} onChange={setConcentration} required />
+          <NumberInput
+            label="污染物浓度"
+            unit={info.unit}
+            value={inputs.c}
+            onChange={(v) => setInputs({ c: v })}
+            required
+          />
         </div>
       </section>
 
@@ -64,7 +80,7 @@ export default function AqiPage() {
       ) : (
         <ResultDisplay
           title={info.name}
-          standard={`当前输入单位：${info.unit}`}
+          standard={`当前输入单位:${info.unit}`}
           items={[
             { label: 'IAQI', value: result.iaqi.toFixed(0), status: result.iaqi > 100 ? 'warning' : 'success' },
             { label: '空气质量级别', value: result.level, status: result.iaqi > 100 ? 'warning' : 'success' },
