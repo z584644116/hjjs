@@ -9,7 +9,14 @@ import {
 } from '@fluentui/react-icons';
 
 export type CalculatorDomain = '环境检测' | '环境处理';
-export type CalculatorCategory = '空气和废气' | '水质' | '通用与质控' | '水处理' | '气体处理';
+export type CalculatorCategory =
+  | '空气和废气'
+  | '水质'
+  | '通用与质控'
+  | '噪声与振动'
+  | '评价与指数'
+  | '水处理'
+  | '气体处理';
 
 /**
  * 工具使用场景(用于搜索、筛选与未来的场景过滤):
@@ -94,16 +101,28 @@ export const calculatorCategories: { key: CalculatorCategory; label: string; dom
     description: '方法检出限、回收率、精密度和土壤质控计算',
   },
   {
+    key: '噪声与振动',
+    label: '噪声与振动',
+    domain: '环境检测',
+    description: '等效声级、统计声级、背景修正、混响与声屏障估算',
+  },
+  {
+    key: '评价与指数',
+    label: '评价与指数',
+    domain: '环境检测',
+    description: '综合污染指数、内梅罗、TLI、生物多样性、地累积 Igeo',
+  },
+  {
     key: '水处理',
     label: '水处理',
     domain: '环境处理',
-    description: '稳定塘、脱氮除磷和碱度平衡设计计算',
+    description: '稳定塘、活性污泥、曝气供氧、消毒与深度处理核心设计公式',
   },
   {
     key: '气体处理',
     label: '气体处理',
     domain: '环境处理',
-    description: '吸收塔、填料塔传质和压降设计计算',
+    description: '吸收塔、除尘、脱硫脱硝与有机废气治理核心设计公式',
   },
 ];
 
@@ -353,6 +372,41 @@ const advancedTools: CalculatorNavItem[] = [
     formulaTex: 'W = \\dfrac{m_{wet} - m_{dry}}{m_{dry}}\\times 100\\%',
     tip: '损失率一般 ≤ 5%;过筛率一般 ≥ 95% 视为合格。',
   },
+  {
+    id: 'noise-calculator',
+    title: '噪声与振动计算',
+    shortTitle: '噪声计算',
+    subtitle: 'Leq / 背景 / 声屏障',
+    description: '覆盖等效声级、统计声级、声源叠加、距离衰减、背景修正、Sabine 混响、声屏障插损 7 个模块。',
+    domain: '环境检测',
+    category: '噪声与振动',
+    icon: React.createElement(DataUsage24Regular),
+    href: '/calculator/noise',
+    badge: '工程',
+    standards: ['GB 3096-2008', 'GB 12348-2008', 'GB 12523-2011', 'JGJ/T 131-2012'],
+    scene: ['field', 'design'],
+    frequency: 'advanced',
+    formula: 'Leq = 10·lg(1/n · Σ 10^(Li/10))\nΔL = 20·lg(r₂/r₁)\nT60 = 0.161·V/A\nIL = 5 + 20·lg[√(2πN)/tanh(√(2πN))]',
+    formulaTex: 'L_{eq} = 10\\lg\\!\\left(\\dfrac{1}{n}\\sum 10^{L_i/10}\\right),\\quad T_{60} = \\dfrac{0.161\\,V}{A}',
+    tip: '读数建议 ≥ 100 个;背景修正规则 ΔL < 3 dB 不可用,≥ 10 dB 无需修正。',
+  },
+  {
+    id: 'assessment-indices',
+    title: '环境评价与指数',
+    shortTitle: '评价指数',
+    subtitle: '综合污染 / TLI / Igeo',
+    description: '综合污染指数、内梅罗、富营养化 TLI、生物多样性与地累积 Igeo 五类核心指数。',
+    domain: '环境检测',
+    category: '评价与指数',
+    icon: React.createElement(LeafOne24Regular),
+    href: '/calculator/assessment',
+    standards: ['GB 3838-2002', 'GB 15618-2018', 'HJ 663-2013'],
+    scene: ['qc', 'design'],
+    frequency: 'advanced',
+    formula: 'P = (1/n)·Σ (Cᵢ/Sᵢ)\nN = √((P̄² + P_max²)/2)\nTLI = Σ Wⱼ·TLI(j)\nH\' = -Σ pᵢ·ln(pᵢ)\nIgeo = log₂(Cᵢ / (k·Bᵢ))',
+    formulaTex: 'N = \\sqrt{\\dfrac{\\bar{P}^{2} + P_{max}^{2}}{2}},\\quad I_{geo} = \\log_2\\!\\dfrac{C_i}{k\\,B_i}',
+    tip: '只提供核心指数;行业专用指数(如 CWQI、SPI)请按本行业标准单独核算。',
+  },
 ];
 
 const treatmentTools: CalculatorNavItem[] = [
@@ -360,35 +414,37 @@ const treatmentTools: CalculatorNavItem[] = [
     id: 'water-treatment-engineering',
     title: '环境水处理公式',
     shortTitle: '水处理设计',
-    subtitle: '稳定塘 / 脱氮除磷',
-    description: '覆盖曝气塘 BOD、温度校正、兼氧塘总氮、碱度平衡和 EBPR 比率。',
+    subtitle: '15 子模块',
+    description: '覆盖稳定塘、脱氮除磷、活性污泥 F/M/SVI/SRT/HRT、AOR/SOR 曝气供氧、药剂投加、CT/UV/EBCT 深度处理共 15 个工程公式。',
     domain: '环境处理',
     category: '水处理',
     icon: React.createElement(Drop24Regular),
     href: '/calculator/water-treatment',
     badge: '工程',
-    standards: ['工程设计经验公式'],
+    standards: ['工程设计经验公式', 'HJ 2038'],
     scene: ['design'],
     frequency: 'advanced',
-    formula: '曝气塘 Ce = C₀ / (1 + k·t)\n温度校正 k_T = k₂₀ · θ^(T-20)\n净碱度 = 3.57·NO₃-N - 7.14·NH₃-N\nEBPR: COD:TP 20~30 充足',
-    tip: '稳定塘与脱氮除磷经验式,实际设计请结合工艺试验数据。',
+    formula: 'F/M = Q·S₀/(V·X)\nSVI = V30×1000/MLSS\nAOR = a\'·Q·ΔBOD + b\'·Q·ΔNH₄ − 1.42·R_endo\nSOR = AOR·Cs20/[α(β·CsT − CL)]·1.024^(20-T)\nCT = C·t,D = I·t',
+    formulaTex: 'F/M = \\dfrac{Q\\,S_0}{V\\,X},\\quad SOR = AOR\\cdot\\dfrac{C_{s,20}}{\\alpha(\\beta C_{s,T} - C_L)}\\cdot 1.024^{20-T}',
+    tip: '稳定塘、活性污泥、曝气供氧、消毒与深度处理通用经验式,实际设计请结合工艺试验数据。',
   },
   {
     id: 'gas-treatment-engineering',
     title: '气体处理公式',
     shortTitle: '气体处理',
-    subtitle: '吸收塔 / 填料塔',
-    description: '覆盖最小液气摩尔比、传质单元数和填料塔压降。',
+    subtitle: '11 子模块',
+    description: '覆盖吸收塔液气比/NTU/压降、静电除尘 Deutsch、袋式 A/C、旋风 d50、湿法 L/G、Ca/S、SCR、RTO、活性炭等温共 11 个工程公式。',
     domain: '环境处理',
     category: '气体处理',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/gas-treatment',
     badge: '工程',
-    standards: ['工程设计经验公式'],
+    standards: ['工程设计经验公式', 'HJ 2028', 'HJ 2020'],
     scene: ['design'],
     frequency: 'advanced',
-    formula: '最小液气比 (L/G)_min = (Y₁ - Y₂) / (X*₁ - X₀)\nNOG ≈ (Y₁ - Y₂) / ΔY_对数均值\n填料压降 ΔP/Z = α·G² / ρ_G',
-    tip: '经验式适用气体吸收塔初步设计,精细设计请结合填料手册。',
+    formula: '(L/G)min = (Yi-Yo)/(Xo*-Xi)\nη = 1 - exp(-SCA·ωk)\nd50 = √[9μW/(2π·Ne·Vi·ρp)]\nNSR = n_NH3/n_NOx\nη_RTO = (T预-T进)/(T燃-T进)',
+    formulaTex: '\\eta = 1 - e^{-\\mathrm{SCA}\\cdot\\omega_k},\\quad d_{50} = \\sqrt{\\dfrac{9\\mu W}{2\\pi N_e V_i \\rho_p}}',
+    tip: '吸收、除尘、脱硫脱硝与有机废气治理通用经验式,初步选型使用,详细设计请结合填料/催化剂手册。',
   },
 ];
 

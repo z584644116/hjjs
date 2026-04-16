@@ -8,3 +8,5 @@ export * from './rsd';
 export * from './alkalinity-hardness';
 export * from './soil-qc';
 export * from './treatment';
+export * from './noise';
+export * from './assessment';
