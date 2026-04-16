@@ -584,6 +584,291 @@ button {
   font-weight: 700;
 }
 
+.app-domain-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.app-domain-switch a {
+  display: grid;
+  min-height: 62px;
+  align-content: center;
+  gap: 3px;
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  background: var(--app-surface);
+  padding: 10px 12px;
+  color: var(--app-ink-secondary);
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.app-domain-switch a span {
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.app-domain-switch a small {
+  overflow: hidden;
+  color: var(--app-ink-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-domain-switch a[data-active="true"] {
+  border-color: var(--app-primary);
+  background: var(--app-primary-light);
+  color: var(--app-primary);
+  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.08);
+}
+
+.app-formula-mobile-head,
+.app-formula-desktop-head,
+.app-formula-sidebar {
+  border: 1px solid var(--app-line);
+  border-radius: 8px;
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.app-formula-mobile-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+}
+
+.app-formula-mobile-head h2,
+.app-formula-desktop-head h2 {
+  overflow-wrap: anywhere;
+  color: var(--app-ink);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.app-formula-mobile-head p,
+.app-formula-desktop-head p {
+  margin-top: 4px;
+  color: var(--app-ink-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.app-formula-mobile-head button,
+.app-formula-drawer-head button {
+  min-height: 38px;
+  border: 1px solid var(--app-line);
+  border-radius: 999px;
+  background: var(--app-surface-secondary);
+  padding: 0 14px;
+  color: var(--app-primary);
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.app-formula-current-group {
+  color: var(--app-primary);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.app-formula-layout {
+  display: grid;
+  gap: 14px;
+}
+
+.app-formula-sidebar {
+  display: none;
+}
+
+.app-formula-desktop-head {
+  display: none;
+}
+
+.app-formula-desktop-head {
+  padding: 16px;
+}
+
+.app-formula-desktop-head code {
+  display: inline-flex;
+  margin-top: 10px;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: var(--app-primary-light);
+  padding: 7px 9px;
+  color: var(--app-primary);
+  font-family: var(--app-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app-formula-sidebar-head,
+.app-formula-drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-formula-sidebar-head {
+  border-bottom: 1px solid var(--app-line);
+  padding: 14px;
+  color: var(--app-ink);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.app-formula-sidebar-head small {
+  color: var(--app-ink-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.app-formula-list {
+  display: grid;
+  gap: 14px;
+}
+
+.app-formula-sidebar .app-formula-list {
+  padding: 12px;
+}
+
+.app-formula-group {
+  display: grid;
+  gap: 7px;
+}
+
+.app-formula-group-title {
+  padding: 0 4px;
+  color: var(--app-ink-tertiary);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.app-formula-group-items {
+  display: grid;
+  gap: 6px;
+}
+
+.app-formula-item {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  padding: 10px 10px 10px 12px;
+  color: var(--app-ink-secondary);
+  text-align: left;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.app-formula-item::before {
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 999px;
+  background: transparent;
+  content: "";
+}
+
+.app-formula-item span {
+  color: var(--app-ink);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.3;
+}
+
+.app-formula-item small {
+  color: var(--app-ink-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.app-formula-item[data-active="true"] {
+  border-color: var(--app-primary);
+  background: var(--app-primary-light);
+}
+
+.app-formula-item[data-active="true"]::before {
+  background: var(--app-primary);
+}
+
+.app-formula-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.app-formula-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.36);
+}
+
+.app-formula-drawer-panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(74vh, 680px);
+  overflow: hidden;
+  border: 1px solid var(--app-line);
+  border-radius: 22px 22px 0 0;
+  background: var(--app-surface);
+  box-shadow: 0 -18px 48px rgba(22, 32, 29, 0.18);
+  backdrop-filter: blur(20px);
+}
+
+.app-formula-drawer-grip {
+  width: 38px;
+  height: 4px;
+  margin: 10px auto 6px;
+  border-radius: 999px;
+  background: var(--app-muted);
+}
+
+.app-formula-drawer-head {
+  padding: 8px 16px 12px;
+}
+
+.app-formula-search {
+  display: block;
+  padding: 0 16px 12px;
+}
+
+.app-formula-search input {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--app-line);
+  border-radius: 999px;
+  background: var(--app-surface-secondary);
+  padding: 0 14px;
+  color: var(--app-ink);
+  outline: 0;
+}
+
+.app-formula-drawer-body {
+  max-height: calc(min(74vh, 680px) - 116px);
+  overflow-y: auto;
+  padding: 0 14px calc(18px + env(safe-area-inset-bottom));
+}
+
 .app-min-tab {
   min-height: 36px;
   flex-shrink: 0;
@@ -708,6 +993,27 @@ button {
 @media (min-width: 768px) {
   .page-container {
     padding: 22px 28px;
+  }
+
+  .app-formula-mobile-head {
+    display: none;
+  }
+
+  .app-formula-layout {
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .app-formula-sidebar {
+    position: sticky;
+    top: 88px;
+    display: block;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+  }
+
+  .app-formula-desktop-head {
+    display: block;
   }
 
   .app-section-title {

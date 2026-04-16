@@ -4,47 +4,78 @@ import React, { useDeferredValue, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Apps24Regular, Search24Regular } from '@fluentui/react-icons';
-import { calculatorNavItems, type CalculatorCategory } from '@/constants/navigation';
+import {
+  calculatorDomains,
+  calculatorNavItems,
+  type CalculatorCategory,
+  type CalculatorDomain,
+} from '@/constants/navigation';
 
 type ActiveCategory = CalculatorCategory | '全部';
 
 function toActiveCategory(value: string | null): ActiveCategory {
-  if (value === '空气和废气' || value === '水质' || value === '通用与质控') return value;
+  if (
+    value === '空气和废气' ||
+    value === '水质' ||
+    value === '通用与质控' ||
+    value === '水处理' ||
+    value === '气体处理'
+  ) return value;
   return '全部';
+}
+
+function toActiveDomain(value: string | null, category: ActiveCategory): CalculatorDomain {
+  if (value === '环境处理' || category === '水处理' || category === '气体处理') return '环境处理';
+  return '环境检测';
 }
 
 export default function NavigationGrid() {
   const searchParams = useSearchParams();
   const activeCategory = toActiveCategory(searchParams.get('category'));
+  const activeDomain = toActiveDomain(searchParams.get('domain'), activeCategory);
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
 
   const displayItems = useMemo(() => {
+    const domainItems = calculatorNavItems.filter((item) => item.domain === activeDomain);
     const categoryItems =
       activeCategory === '全部'
-        ? calculatorNavItems
-        : calculatorNavItems.filter((item) => item.category === activeCategory);
+        ? domainItems
+        : domainItems.filter((item) => item.category === activeCategory);
 
     if (!deferredQuery) return categoryItems;
 
     return categoryItems.filter((item) =>
-      [item.title, item.shortTitle, item.subtitle, item.category, item.badge]
+      [item.title, item.shortTitle, item.subtitle, item.domain, item.category, item.badge]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(deferredQuery)),
     );
-  }, [activeCategory, deferredQuery]);
+  }, [activeCategory, activeDomain, deferredQuery]);
 
   return (
     <div className="page-container">
       <section className="mx-auto max-w-[1160px] space-y-4">
         <div className="grid grid-cols-[44px_minmax(0,1fr)_44px] items-center gap-3 px-1">
           <div aria-hidden="true" />
-          <h1 className="text-base font-black text-[var(--app-ink)]">{activeCategory}</h1>
+          <h1 className="text-base font-black text-[var(--app-ink)]">{activeCategory === '全部' ? activeDomain : activeCategory}</h1>
           <div className="flex justify-end">
             <span className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--app-line)] bg-[var(--app-surface)] text-[var(--app-ink-secondary)]">
               <Apps24Regular className="h-5 w-5" />
             </span>
           </div>
+        </div>
+
+        <div className="app-domain-switch" aria-label="计算类型">
+          {calculatorDomains.map((domain) => (
+            <Link
+              key={domain.key}
+              href={`/?domain=${encodeURIComponent(domain.key)}`}
+              data-active={activeDomain === domain.key}
+            >
+              <span>{domain.label}</span>
+              <small>{domain.description}</small>
+            </Link>
+          ))}
         </div>
 
         <label className="app-min-search" aria-label="搜索工具">

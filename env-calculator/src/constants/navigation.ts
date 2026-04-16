@@ -8,7 +8,8 @@ import {
   LeafOne24Regular,
 } from '@fluentui/react-icons';
 
-export type CalculatorCategory = '空气和废气' | '水质' | '通用与质控';
+export type CalculatorDomain = '环境检测' | '环境处理';
+export type CalculatorCategory = '空气和废气' | '水质' | '通用与质控' | '水处理' | '气体处理';
 
 export type CalculatorNavItem = {
   id: string;
@@ -16,6 +17,7 @@ export type CalculatorNavItem = {
   shortTitle?: string;
   subtitle?: string;
   description: string;
+  domain: CalculatorDomain;
   category: CalculatorCategory;
   href: string;
   featured?: boolean;
@@ -23,21 +25,49 @@ export type CalculatorNavItem = {
   icon: React.ReactNode;
 };
 
-export const calculatorCategories: { key: CalculatorCategory; label: string; description: string }[] = [
+export const calculatorDomains: { key: CalculatorDomain; label: string; description: string }[] = [
+  {
+    key: '环境检测',
+    label: '环境检测',
+    description: '现场检测、质量控制和常用监测核算',
+  },
+  {
+    key: '环境处理',
+    label: '环境处理',
+    description: '水处理和气体处理工程设计核算',
+  },
+];
+
+export const calculatorCategories: { key: CalculatorCategory; label: string; domain: CalculatorDomain; description: string }[] = [
   {
     key: '空气和废气',
     label: '空气和废气',
+    domain: '环境检测',
     description: '采样、烟气、固定源、AQI 与无组织监测相关计算',
   },
   {
     key: '水质',
     label: '水质',
+    domain: '环境检测',
     description: '溶解氧、pH、水质质控和地下水相关计算',
   },
   {
     key: '通用与质控',
     label: '通用与质控',
+    domain: '环境检测',
     description: '方法检出限、回收率、精密度和土壤质控计算',
+  },
+  {
+    key: '水处理',
+    label: '水处理',
+    domain: '环境处理',
+    description: '稳定塘、脱氮除磷和碱度平衡设计计算',
+  },
+  {
+    key: '气体处理',
+    label: '气体处理',
+    domain: '环境处理',
+    description: '吸收塔、填料塔传质和压降设计计算',
   },
 ];
 
@@ -46,6 +76,7 @@ const mainTools: CalculatorNavItem[] = [
     id: 'sampling-calculator',
     title: '采样嘴计算',
     description: '根据烟气流速、含湿量与仪器规格快速推荐采样嘴径。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(Calculator24Regular),
     href: '/calculator/sampling',
@@ -55,6 +86,7 @@ const mainTools: CalculatorNavItem[] = [
     id: 'fluegas-conversion',
     title: '烟气折算计算',
     description: '将实测浓度折算至基准氧含量，适用于废气排放核算。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/fluegas',
@@ -63,6 +95,7 @@ const mainTools: CalculatorNavItem[] = [
     id: 'gas-converter',
     title: '气体单位换算',
     description: '支持 SO2、NO、NO2、CO、NMHC 等污染物浓度换算。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/gas',
@@ -71,6 +104,7 @@ const mainTools: CalculatorNavItem[] = [
     id: 'unorg-suitability',
     title: '无组织监测适宜度',
     description: '依据 HJ/T 55-2000 快速辅助判断监测布点适宜性。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(LeafOne24Regular),
     href: '/calculator/unorg',
@@ -79,6 +113,7 @@ const mainTools: CalculatorNavItem[] = [
     id: 'do-saturation',
     title: '溶解氧计算',
     description: '按温度与大气压快速换算饱和溶解氧标准值。',
+    domain: '环境检测',
     category: '水质',
     icon: React.createElement(Drop24Regular),
     href: '/calculator/do',
@@ -89,6 +124,7 @@ const mainTools: CalculatorNavItem[] = [
     title: '水质质量控制分析',
     shortTitle: '水质质控',
     description: '覆盖离子平衡、TDS、电导率、总硬度、溶解度与碱度/硬度换算。',
+    domain: '环境检测',
     category: '水质',
     icon: React.createElement(Beaker24Regular),
     href: '/calculator/wqc',
@@ -98,6 +134,7 @@ const mainTools: CalculatorNavItem[] = [
     title: 'pH 标准值',
     shortTitle: 'pH 计算',
     description: '标准缓冲液温度修正值与理论 pH 快速查询计算。',
+    domain: '环境检测',
     category: '水质',
     icon: React.createElement(Beaker24Regular),
     href: '/calculator/ph',
@@ -107,6 +144,7 @@ const mainTools: CalculatorNavItem[] = [
     title: '地下水井水体积',
     shortTitle: '井水体积',
     description: '按井深、埋深和井径计算井水体积与换水参考量。',
+    domain: '环境检测',
     category: '水质',
     icon: React.createElement(Drop24Regular),
     href: '/calculator/well',
@@ -120,6 +158,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: '空气浓度',
     subtitle: 'PM / 固定源',
     description: '按采样流量、时间、压力、温度和滤膜增重计算标准体积与颗粒物浓度。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/air-conc',
@@ -130,6 +169,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: '等速核查',
     subtitle: '90% ~ 110%',
     description: '用动压、压力、温度、皮托管系数和采样嘴径核查等速跟踪率。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(Cloud24Regular),
     href: '/calculator/isokinetic',
@@ -140,6 +180,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: 'AQI',
     subtitle: 'IAQI 与级别',
     description: '按 HJ 633 分段插值计算污染物空气质量分指数和等级。',
+    domain: '环境检测',
     category: '空气和废气',
     icon: React.createElement(LeafOne24Regular),
     href: '/calculator/aqi',
@@ -150,6 +191,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: 'MDL',
     subtitle: '7~20 个平行样',
     description: '粘贴原始平行样数据，自动输出均值、标准差、MDL、置信区间和 CSV 报告。',
+    domain: '环境检测',
     category: '通用与质控',
     icon: React.createElement(DataUsage24Regular),
     href: '/calculator/mdl',
@@ -161,6 +203,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: '回收率',
     subtitle: '加标样核查',
     description: '按原样、加标样和加标量计算加标回收率。',
+    domain: '环境检测',
     category: '通用与质控',
     icon: React.createElement(Beaker24Regular),
     href: '/calculator/recovery',
@@ -171,6 +214,7 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: 'RSD',
     subtitle: '精密度',
     description: '粘贴至少 2 个测定值，自动计算均值、样本标准差和 RSD。',
+    domain: '环境检测',
     category: '通用与质控',
     icon: React.createElement(DataUsage24Regular),
     href: '/calculator/rsd',
@@ -181,13 +225,42 @@ const advancedTools: CalculatorNavItem[] = [
     shortTitle: '土壤质控',
     subtitle: '含水率 / 制备',
     description: '合并土壤含水率、制备损失率和过筛率核查。',
+    domain: '环境检测',
     category: '通用与质控',
     icon: React.createElement(Drop24Regular),
     href: '/calculator/soil-qc',
   },
 ];
 
+const treatmentTools: CalculatorNavItem[] = [
+  {
+    id: 'water-treatment-engineering',
+    title: '环境水处理公式',
+    shortTitle: '水处理设计',
+    subtitle: '稳定塘 / 脱氮除磷',
+    description: '覆盖曝气塘 BOD、温度校正、兼氧塘总氮、碱度平衡和 EBPR 比率。',
+    domain: '环境处理',
+    category: '水处理',
+    icon: React.createElement(Drop24Regular),
+    href: '/calculator/water-treatment',
+    badge: '工程',
+  },
+  {
+    id: 'gas-treatment-engineering',
+    title: '气体处理公式',
+    shortTitle: '气体处理',
+    subtitle: '吸收塔 / 填料塔',
+    description: '覆盖最小液气摩尔比、传质单元数和填料塔压降。',
+    domain: '环境处理',
+    category: '气体处理',
+    icon: React.createElement(Cloud24Regular),
+    href: '/calculator/gas-treatment',
+    badge: '工程',
+  },
+];
+
 export const calculatorNavItems: CalculatorNavItem[] = [
   ...mainTools,
   ...advancedTools,
+  ...treatmentTools,
 ];

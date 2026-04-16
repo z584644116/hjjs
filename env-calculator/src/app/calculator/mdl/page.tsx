@@ -2,6 +2,7 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
+import FormulaModuleShell, { FormulaModuleOption } from '@/components/FormulaModuleShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
 import {
@@ -11,6 +12,23 @@ import {
 } from '@/lib/calculators';
 
 type MdlMode = 'raw' | 'manual';
+
+const mdlModules: FormulaModuleOption[] = [
+  {
+    key: 'raw',
+    title: '原始平行样',
+    group: '推荐方式',
+    description: '粘贴 7~20 个平行样数据，自动输出完整 MDL 质控报告。',
+    formula: 'MDL = t × s；CI95 = mean ± t × s / √n',
+  },
+  {
+    key: 'manual',
+    title: '手动 s 与 t',
+    group: '兼容方式',
+    description: '沿用已知标准差和 t 值，快速计算方法检出限。',
+    formula: 'MDL = t × s',
+  },
+];
 
 function parseRawValues(value: string) {
   const tokens = value.split(/[\s,，;；、]+/).map((item) => item.trim()).filter(Boolean);
@@ -70,6 +88,7 @@ export default function MdlPage() {
   }, []);
 
   const handleReset = useCallback(() => {
+    setMode('raw');
     setRawValues('');
     setManualSd('');
     setManualT('3.143');
@@ -130,38 +149,60 @@ export default function MdlPage() {
 
   return (
     <CalculatorShell title="方法检出限 MDL" actions={actions}>
-      <section className="app-panel p-4 md:p-5">
-        <div className="mb-4 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setMode('raw')} data-active={mode === 'raw'} className="app-segment">
-            原始平行样
-          </button>
-          <button type="button" onClick={() => setMode('manual')} data-active={mode === 'manual'} className="app-segment">
-            手动 s 与 t
-          </button>
-        </div>
-
-        {mode === 'raw' ? (
-          <div className="space-y-4">
-            <div className="app-number-field">
-              <label className="app-number-label" htmlFor="mdl-values">原始平行样数据</label>
-              <textarea
-                id="mdl-values"
-                value={rawValues}
-                onChange={(event) => setRawValues(event.target.value)}
-                placeholder="粘贴 7~20 个数据，可用空格、逗号、分号或换行分隔"
-                className="min-h-36 w-full resize-y rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-transparent px-3 py-2 text-base text-[var(--app-ink)] outline-none transition-colors focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary-light)]"
-              />
-              <span className="app-number-helper">
-                已识别 {parsed.validValues.length} 个有效值{parsed.invalidCount > 0 ? `，忽略 ${parsed.invalidCount} 个无效片段` : ''}。
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <FormulaModuleShell
+        modules={mdlModules}
+        activeKey={mode}
+        onChange={(key) => setMode(key as MdlMode)}
+        navigationLabel="输入方式"
+        countUnit="种方式"
+        switchLabel="切换方式"
+        drawerSubtitle="推荐优先使用原始平行样"
+        searchPlaceholder="搜索输入方式"
+        emptyText="无匹配方式"
+      >
+        <section className="app-panel p-4 md:p-5">
+          {mode === 'raw' ? (
+            <div className="space-y-4">
               <div className="app-number-field">
-                <label className="app-number-label" htmlFor="mdl-unit">浓度单位</label>
+                <label className="app-number-label" htmlFor="mdl-values">原始平行样数据</label>
+                <textarea
+                  id="mdl-values"
+                  value={rawValues}
+                  onChange={(event) => setRawValues(event.target.value)}
+                  placeholder="粘贴 7~20 个数据，可用空格、逗号、分号或换行分隔"
+                  className="min-h-36 w-full resize-y rounded-[var(--app-radius-sm)] border border-[var(--app-line)] bg-transparent px-3 py-2 text-base text-[var(--app-ink)] outline-none transition-colors focus:border-[var(--app-primary)] focus:ring-2 focus:ring-[var(--app-primary-light)]"
+                />
+                <span className="app-number-helper">
+                  已识别 {parsed.validValues.length} 个有效值{parsed.invalidCount > 0 ? `，忽略 ${parsed.invalidCount} 个无效片段` : ''}。
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div className="app-number-field">
+                  <label className="app-number-label" htmlFor="mdl-unit">浓度单位</label>
+                  <div className="app-number-control">
+                    <input
+                      id="mdl-unit"
+                      type="text"
+                      value={unit}
+                      onChange={(event) => setUnit(event.target.value)}
+                      className="app-number-input text-left"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {clipboardMessage && <p className="text-xs font-medium text-[var(--app-ink-tertiary)]">{clipboardMessage}</p>}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <NumberInput label="重复测定标准差 s" unit={unit} value={manualSd} onChange={setManualSd} required />
+              <NumberInput label="t 分布值" value={manualT} onChange={setManualT} required />
+              <div className="app-number-field">
+                <label className="app-number-label" htmlFor="mdl-manual-unit">浓度单位</label>
                 <div className="app-number-control">
                   <input
-                    id="mdl-unit"
+                    id="mdl-manual-unit"
                     type="text"
                     value={unit}
                     onChange={(event) => setUnit(event.target.value)}
@@ -170,72 +211,53 @@ export default function MdlPage() {
                 </div>
               </div>
             </div>
+          )}
+        </section>
 
-            {clipboardMessage && <p className="text-xs font-medium text-[var(--app-ink-tertiary)]">{clipboardMessage}</p>}
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <NumberInput label="重复测定标准差 s" unit={unit} value={manualSd} onChange={setManualSd} required />
-            <NumberInput label="t 分布值" value={manualT} onChange={setManualT} required />
-            <div className="app-number-field">
-              <label className="app-number-label" htmlFor="mdl-manual-unit">浓度单位</label>
-              <div className="app-number-control">
-                <input
-                  id="mdl-manual-unit"
-                  type="text"
-                  value={unit}
-                  onChange={(event) => setUnit(event.target.value)}
-                  className="app-number-input text-left"
-                />
-              </div>
+        {mode === 'raw' ? (
+          'error' in rawResult ? (
+            <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
+              {rawResult.error}
             </div>
-          </div>
+          ) : (
+            <ResultDisplay
+              title="MDL 质控报告"
+              standard="MDL = t × s；置信区间为均值的 95% 双侧置信区间"
+              items={[
+                { label: '有效数据个数', value: rawResult.count },
+                { label: '样本均值', value: rawResult.mean.toFixed(6), unit },
+                { label: '样本标准差 s', value: rawResult.standardDeviation.toFixed(6), unit },
+                { label: 'MDL t 值', value: rawResult.tValue.toFixed(3) },
+                { label: '方法检出限 MDL', value: rawResult.methodDetectionLimit.toFixed(6), unit, status: 'success' },
+                { label: '95%置信区间下限', value: rawResult.confidenceLower.toFixed(6), unit },
+                { label: '95%置信区间上限', value: rawResult.confidenceUpper.toFixed(6), unit },
+                { label: '极差', value: rawResult.range.toFixed(6), unit },
+              ]}
+              details={
+                <div className="space-y-2">
+                  <p>原始数据：{parsed.validValues.map((value) => value.toString()).join('，')}</p>
+                  <p>95% CI 使用 t = {rawResult.confidenceTValue.toFixed(3)}，n = {rawResult.count}。</p>
+                </div>
+              }
+            />
+          )
+        ) : (
+          'error' in manualResult ? (
+            <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
+              {manualResult.error}
+            </div>
+          ) : (
+            <ResultDisplay
+              title="手动 MDL"
+              items={[
+                { label: '重复测定标准差 s', value: manualSd || '-', unit },
+                { label: 't 分布值', value: manualT || '-' },
+                { label: '方法检出限 MDL', value: manualResult.methodDetectionLimit.toFixed(6), unit, status: 'success' },
+              ]}
+            />
+          )
         )}
-      </section>
-
-      {mode === 'raw' ? (
-        'error' in rawResult ? (
-          <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-            {rawResult.error}
-          </div>
-        ) : (
-          <ResultDisplay
-            title="MDL 质控报告"
-            standard="MDL = t × s；置信区间为均值的 95% 双侧置信区间"
-            items={[
-              { label: '有效数据个数', value: rawResult.count },
-              { label: '样本均值', value: rawResult.mean.toFixed(6), unit },
-              { label: '样本标准差 s', value: rawResult.standardDeviation.toFixed(6), unit },
-              { label: 'MDL t 值', value: rawResult.tValue.toFixed(3) },
-              { label: '方法检出限 MDL', value: rawResult.methodDetectionLimit.toFixed(6), unit, status: 'success' },
-              { label: '95%置信区间下限', value: rawResult.confidenceLower.toFixed(6), unit },
-              { label: '95%置信区间上限', value: rawResult.confidenceUpper.toFixed(6), unit },
-              { label: '极差', value: rawResult.range.toFixed(6), unit },
-            ]}
-            details={
-              <div className="space-y-2">
-                <p>原始数据：{parsed.validValues.map((value) => value.toString()).join('，')}</p>
-                <p>95% CI 使用 t = {rawResult.confidenceTValue.toFixed(3)}，n = {rawResult.count}。</p>
-              </div>
-            }
-          />
-        )
-      ) : (
-        'error' in manualResult ? (
-          <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-            {manualResult.error}
-          </div>
-        ) : (
-          <ResultDisplay
-            title="手动 MDL"
-            items={[
-              { label: '重复测定标准差 s', value: manualSd || '-', unit },
-              { label: 't 分布值', value: manualT || '-' },
-              { label: '方法检出限 MDL', value: manualResult.methodDetectionLimit.toFixed(6), unit, status: 'success' },
-            ]}
-          />
-        )
-      )}
+      </FormulaModuleShell>
     </CalculatorShell>
   );
 }

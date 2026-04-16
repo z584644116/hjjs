@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
+import FormulaModuleShell, { FormulaModuleOption } from '@/components/FormulaModuleShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
 import {
@@ -12,6 +13,23 @@ import {
 } from '@/lib/calculators';
 
 type SoilTab = 'moisture' | 'prep';
+
+const soilModules: FormulaModuleOption[] = [
+  {
+    key: 'moisture',
+    title: '含水率',
+    group: '土壤样品',
+    description: '由湿重与干重计算水分质量和含水率。',
+    formula: '含水率 = (湿重 - 干重) / 干重 × 100%',
+  },
+  {
+    key: 'prep',
+    title: '制备质控',
+    group: '样品制备',
+    description: '同步核查制备损失量、损失率和过筛率。',
+    formula: '损失率 = 损失量 / 制备前重量 × 100%；过筛率 = 过筛重量 / 总重量 × 100%',
+  },
+];
 
 export default function SoilQcPage() {
   const [activeTab, setActiveTab] = useState<SoilTab>('moisture');
@@ -56,65 +74,68 @@ export default function SoilQcPage() {
         </button>
       }
     >
-      <section className="app-panel p-4 md:p-5">
-        <div className="mb-4 flex flex-wrap gap-2">
-          <button type="button" onClick={() => setActiveTab('moisture')} data-active={activeTab === 'moisture'} className="app-segment">
-            含水率
-          </button>
-          <button type="button" onClick={() => setActiveTab('prep')} data-active={activeTab === 'prep'} className="app-segment">
-            制备质控
-          </button>
-        </div>
+      <FormulaModuleShell
+        modules={soilModules}
+        activeKey={activeTab}
+        onChange={(key) => setActiveTab(key as SoilTab)}
+        navigationLabel="质控模块"
+        countUnit="个模块"
+        switchLabel="切换模块"
+        drawerSubtitle="按样品处理阶段分组"
+        searchPlaceholder="搜索质控模块"
+        emptyText="无匹配模块"
+      >
+        <section className="app-panel p-4 md:p-5">
+          {activeTab === 'moisture' ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <NumberInput label="湿重" unit="g" value={wetWeight} onChange={setWetWeight} required />
+              <NumberInput label="干重" unit="g" value={dryWeight} onChange={setDryWeight} required />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <NumberInput label="制备前重量" unit="g" value={beforeWeight} onChange={setBeforeWeight} required />
+              <NumberInput label="制备后重量" unit="g" value={afterWeight} onChange={setAfterWeight} required />
+              <NumberInput label="过筛重量" unit="g" value={passedWeight} onChange={setPassedWeight} required />
+              <NumberInput label="总重量" unit="g" value={totalWeight} onChange={setTotalWeight} required />
+            </div>
+          )}
+        </section>
 
         {activeTab === 'moisture' ? (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <NumberInput label="湿重" unit="g" value={wetWeight} onChange={setWetWeight} required />
-            <NumberInput label="干重" unit="g" value={dryWeight} onChange={setDryWeight} required />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <NumberInput label="制备前重量" unit="g" value={beforeWeight} onChange={setBeforeWeight} required />
-            <NumberInput label="制备后重量" unit="g" value={afterWeight} onChange={setAfterWeight} required />
-            <NumberInput label="过筛重量" unit="g" value={passedWeight} onChange={setPassedWeight} required />
-            <NumberInput label="总重量" unit="g" value={totalWeight} onChange={setTotalWeight} required />
-          </div>
-        )}
-      </section>
-
-      {activeTab === 'moisture' ? (
-        'error' in moistureResult ? (
+          'error' in moistureResult ? (
+            <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
+              {moistureResult.error}
+            </div>
+          ) : (
+            <ResultDisplay
+              title="含水率"
+              standard="含水率 = (湿重 - 干重) / 干重 × 100%"
+              items={[
+                { label: '水分质量', value: moistureResult.waterWeightG.toFixed(4), unit: 'g' },
+                { label: '含水率', value: moistureResult.moisturePercent.toFixed(2), unit: '%', status: 'success' },
+              ]}
+            />
+          )
+        ) : 'error' in lossResult ? (
           <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-            {moistureResult.error}
+            {lossResult.error}
+          </div>
+        ) : 'error' in sieveResult ? (
+          <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
+            {sieveResult.error}
           </div>
         ) : (
           <ResultDisplay
-            title="含水率"
-            standard="含水率 = (湿重 - 干重) / 干重 × 100%"
+            title="制备质控"
+            standard="损失率与过筛率同步核查"
             items={[
-              { label: '水分质量', value: moistureResult.waterWeightG.toFixed(4), unit: 'g' },
-              { label: '含水率', value: moistureResult.moisturePercent.toFixed(2), unit: '%', status: 'success' },
+              { label: '损失量', value: lossResult.lossWeightG.toFixed(4), unit: 'g' },
+              { label: '损失率', value: lossResult.lossPercent.toFixed(2), unit: '%', status: lossResult.lossPercent <= 5 ? 'success' : 'warning' },
+              { label: '过筛率', value: sieveResult.sievePercent.toFixed(2), unit: '%', status: sieveResult.sievePercent >= 95 ? 'success' : 'warning' },
             ]}
           />
-        )
-      ) : 'error' in lossResult ? (
-        <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-          {lossResult.error}
-        </div>
-      ) : 'error' in sieveResult ? (
-        <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-          {sieveResult.error}
-        </div>
-      ) : (
-        <ResultDisplay
-          title="制备质控"
-          standard="损失率与过筛率同步核查"
-          items={[
-            { label: '损失量', value: lossResult.lossWeightG.toFixed(4), unit: 'g' },
-            { label: '损失率', value: lossResult.lossPercent.toFixed(2), unit: '%', status: lossResult.lossPercent <= 5 ? 'success' : 'warning' },
-            { label: '过筛率', value: sieveResult.sievePercent.toFixed(2), unit: '%', status: sieveResult.sievePercent >= 95 ? 'success' : 'warning' },
-          ]}
-        />
-      )}
+        )}
+      </FormulaModuleShell>
     </CalculatorShell>
   );
 }
