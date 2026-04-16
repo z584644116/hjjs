@@ -10,6 +10,5 @@ export const PROTECTION_POWER_FACTOR = 0.85;
 export const STORAGE_KEYS = {
   AUTH_MODE: 'env_calc_auth_mode',
   USER_DATA: 'env_calc_user_data',
-  INSTRUMENTS: 'env_calc_instruments',
   CURRENT_USER: 'env_calc_current_user',
 };

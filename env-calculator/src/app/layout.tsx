@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import TopNavigation from "@/components/TopNavigation";
@@ -19,7 +20,9 @@ export default function RootLayout({
       <body>
         <Providers>
           <div className="app-shell">
-            <TopNavigation />
+            <Suspense fallback={null}>
+              <TopNavigation />
+            </Suspense>
             <main className="app-main">{children}</main>
             <Footer />
           </div>

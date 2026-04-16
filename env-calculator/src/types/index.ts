@@ -9,16 +9,7 @@ export interface AuthUser extends User {
   recoveryKey: string;
 }
 
-export interface Instrument {
-  id: string;
-  model: string;
-  maxFlowRate: number; // L/min
-  createdAt: string;
-  userId?: string;
-}
-
 export interface CalculationInput {
-  instrumentId: string;
   samplingType: 'normal' | 'low-concentration';
   smokeVelocity: number; // m/s
   moistureContent: number; // %

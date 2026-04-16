@@ -1,4 +1,4 @@
-﻿import { CalculationError, requirePositive, roundTo } from './common';
+import { CalculationError, requirePositive, roundTo } from './common';
 
 export interface SpikeRecoveryInput {
   originalConcentration: number;
@@ -9,12 +9,6 @@ export interface SpikeRecoveryInput {
 export interface SpikeRecoveryResult {
   recoveredAmount: number;
   recoveryPercent: number;
-}
-
-export interface RsdResult {
-  average: number;
-  standardDeviation: number;
-  rsdPercent: number;
 }
 
 /**
@@ -32,25 +26,5 @@ export function calculateSpikeRecovery(input: SpikeRecoveryInput): SpikeRecovery
   return {
     recoveredAmount: roundTo(recoveredAmount, 6),
     recoveryPercent: roundTo((recoveredAmount / input.spikeAmount) * 100, 2),
-  };
-}
-
-/**
- * 相对标准偏差 RSD = 标准偏差 / 平均值 × 100%。
- */
-export function calculateRsd(values: number[]): RsdResult | CalculationError {
-  const validValues = values.filter(Number.isFinite);
-  if (validValues.length < 2) return { error: 'RSD 至少需要 2 个有效测定值' };
-
-  const average = validValues.reduce((sum, value) => sum + value, 0) / validValues.length;
-  if (average === 0) return { error: '测定值平均值不能为 0' };
-
-  const variance = validValues.reduce((sum, value) => sum + (value - average) ** 2, 0) / (validValues.length - 1);
-  const standardDeviation = Math.sqrt(variance);
-
-  return {
-    average: roundTo(average, 6),
-    standardDeviation: roundTo(standardDeviation, 6),
-    rsdPercent: roundTo((standardDeviation / average) * 100, 2),
   };
 }

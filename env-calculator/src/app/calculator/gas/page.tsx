@@ -49,10 +49,23 @@ export default function GasConverterPage() {
       ? null
       : parseFloat(pressureStr.replace(",", "."));
 
+  const handleReset = () => {
+    setGas("SO2");
+    setTemperatureStr("");
+    setPressureStr("");
+    setInputStr("");
+    setInputUnit("ppm");
+  };
+
   return (
     <CalculatorShell
       title="气体单位换算"
       description="SO2/NO/NO2/CO/NMHC 浓度换算"
+      actions={
+        <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+          重置
+        </button>
+      }
     >
       {/* Input Card */}
       <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)] p-5">

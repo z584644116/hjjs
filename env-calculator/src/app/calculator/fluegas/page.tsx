@@ -32,10 +32,21 @@ export default function FlueGasCalculatorPage() {
 
   const hasError = 'error' in result;
 
+  const handleReset = () => {
+    setMeasuredConcentrationStr('');
+    setReferenceO2Str('');
+    setMeasuredO2Str('');
+  };
+
   return (
     <CalculatorShell
       title="烟气折算计算"
       description="根据烟气排放标准，将实测污染物浓度折算为基准氧含量下的污染物浓度"
+      actions={
+        <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+          重置
+        </button>
+      }
     >
       {/* 公式提示 */}
       <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 text-sm text-blue-800">

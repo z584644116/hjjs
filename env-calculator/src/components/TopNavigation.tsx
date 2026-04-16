@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useTheme } from '@/components/Providers';
 import { calculatorCategories, calculatorNavItems } from '@/constants/navigation';
 import {
@@ -17,29 +17,34 @@ import {
   WeatherSunny20Regular,
 } from '@fluentui/react-icons';
 
-const desktopQuickLinks = calculatorNavItems.slice(0, 5);
-
 const mobileTabs = [
-  { label: '首页', href: '/', icon: <Home24Regular />, match: (path: string) => path === '/' },
   {
     label: '空气',
-    href: '/calculator/sampling',
+    href: '/?category=空气和废气',
     icon: <Apps24Regular />,
-    match: (path: string) => ['/calculator/sampling', '/calculator/fluegas', '/calculator/gas', '/calculator/unorg'].some((item) => path.startsWith(item)),
+    category: '空气和废气',
   },
   {
     label: '水质',
-    href: '/calculator/wqc',
+    href: '/?category=水质',
     icon: <Drop24Regular />,
-    match: (path: string) => ['/calculator/wqc', '/calculator/do', '/calculator/ph', '/calculator/well'].some((item) => path.startsWith(item)),
+    category: '水质',
   },
-  { label: '公式', href: '/calculator/v23', icon: <DataUsage24Regular />, match: (path: string) => path.startsWith('/calculator/v23') },
+  {
+    label: '质控',
+    href: '/?category=通用与质控',
+    icon: <DataUsage24Regular />,
+    category: '通用与质控',
+  },
+  { label: '全部', href: '/', icon: <Home24Regular />, category: '全部' },
 ];
 
 export default function TopNavigation() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const activeCategory = searchParams.get('category') ?? '全部';
 
   const groupedLinks = useMemo(
     () =>
@@ -66,22 +71,7 @@ export default function TopNavigation() {
               </span>
             </Link>
 
-            <nav className="hidden flex-1 items-center justify-center gap-2 lg:flex" aria-label="快捷入口">
-              {desktopQuickLinks.map((item) => {
-                const active = pathname === item.href;
-                return (
-                  <Link
-                    key={item.id}
-                    href={item.href}
-                    data-active={active}
-                    className="inline-flex min-h-[40px] items-center gap-2 rounded-full border border-[var(--app-line)] bg-[var(--app-surface-secondary)] px-3.5 text-sm font-bold text-[var(--app-ink-secondary)] transition-all hover:border-[var(--app-line-strong)] hover:text-[var(--app-ink)] data-[active=true]:border-[var(--app-primary)] data-[active=true]:bg-[var(--app-primary-light)] data-[active=true]:text-[var(--app-primary)]"
-                  >
-                    <span aria-hidden="true">{item.icon}</span>
-                    <span>{item.shortTitle ?? item.title}</span>
-                  </Link>
-                );
-              })}
-            </nav>
+            <div className="hidden flex-1 lg:block" aria-hidden="true" />
 
             <div className="flex items-center gap-2">
               <Link href="/" className="app-action-primary hidden md:inline-flex">
@@ -108,7 +98,11 @@ export default function TopNavigation() {
 
       <nav className="app-mobile-nav" aria-label="手机主导航">
         {mobileTabs.map((item) => (
-          <Link key={item.href} href={item.href} data-active={item.match(pathname)}>
+          <Link
+            key={item.href}
+            href={item.href}
+            data-active={pathname === '/' && activeCategory === item.category}
+          >
             {item.icon}
             <span>{item.label}</span>
           </Link>

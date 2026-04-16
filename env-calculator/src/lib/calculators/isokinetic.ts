@@ -1,4 +1,4 @@
-﻿import { CalculationError, requireNonNegative, requirePositive, roundTo } from './common';
+import { CalculationError, requireNonNegative, requirePositive, roundTo } from './common';
 
 export interface FlueGasVelocityInput {
   dynamicPressurePa: number;
@@ -24,12 +24,12 @@ export interface IsokineticFlowResult extends FlueGasVelocityResult {
   theoreticalFlowLMin: number;
   actualFlowLMin: number;
   deviationPercent: number;
+  trackingRatePercent: number;
   isWithinTolerance: boolean;
 }
 
 /**
- * 烟气流速与等速采样验证。
- * Pd: Pa, Ba/Ps: kPa, ts: °C, ρs: kg/m³, Vs: m/s, Q: L/min。
+ * 烟气流速与等速跟踪率核查，默认按理论流量 ±10% 判定。
  */
 export function calculateFlueGasVelocity(input: FlueGasVelocityInput): FlueGasVelocityResult | CalculationError {
   const dynamicError = requireNonNegative(input.dynamicPressurePa, '动压');
@@ -81,12 +81,14 @@ export function calculateIsokineticFlow(input: IsokineticFlowInput, tolerancePer
   const deviationPercent = theoreticalFlowLMin > 0
     ? ((input.actualFlowLMin - theoreticalFlowLMin) / theoreticalFlowLMin) * 100
     : 0;
+  const trackingRatePercent = theoreticalFlowLMin > 0 ? (input.actualFlowLMin / theoreticalFlowLMin) * 100 : 0;
 
   return {
     ...velocity,
     theoreticalFlowLMin: roundTo(theoreticalFlowLMin, 2),
     actualFlowLMin: roundTo(input.actualFlowLMin, 2),
     deviationPercent: roundTo(deviationPercent, 2),
+    trackingRatePercent: roundTo(trackingRatePercent, 2),
     isWithinTolerance: Math.abs(deviationPercent) <= tolerancePercent,
   };
 }

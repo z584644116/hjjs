@@ -22,10 +22,20 @@ export default function DOCalculatorPage() {
     return computeDO(p, t);
   }, [pressureStr, temperatureStr]);
 
+  const handleReset = () => {
+    setPressureStr("");
+    setTemperatureStr("");
+  };
+
   return (
     <CalculatorShell
       title="溶解氧计算"
       description="温度与大气压换算饱和溶解氧标准值"
+      actions={
+        <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+          重置
+        </button>
+      }
     >
       {/* 输入区 */}
       <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)] p-4">

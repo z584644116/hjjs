@@ -2,18 +2,20 @@
 
 import React, { useDeferredValue, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Apps24Regular, Search24Regular } from '@fluentui/react-icons';
-import { calculatorCategories, calculatorNavItems, type CalculatorCategory } from '@/constants/navigation';
+import { calculatorNavItems, type CalculatorCategory } from '@/constants/navigation';
 
 type ActiveCategory = CalculatorCategory | '全部';
 
-const categories: { key: ActiveCategory; label: string }[] = [
-  { key: '全部', label: '全部' },
-  ...calculatorCategories.map((category) => ({ key: category.key, label: category.label })),
-];
+function toActiveCategory(value: string | null): ActiveCategory {
+  if (value === '空气和废气' || value === '水质' || value === '通用与质控') return value;
+  return '全部';
+}
 
 export default function NavigationGrid() {
-  const [activeCategory, setActiveCategory] = useState<ActiveCategory>('全部');
+  const searchParams = useSearchParams();
+  const activeCategory = toActiveCategory(searchParams.get('category'));
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query.trim().toLowerCase());
 
@@ -59,20 +61,6 @@ export default function NavigationGrid() {
             </button>
           )}
         </label>
-
-        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
-          {categories.map((category) => (
-            <button
-              key={category.key}
-              type="button"
-              onClick={() => setActiveCategory(category.key)}
-              data-active={activeCategory === category.key}
-              className="app-min-tab"
-            >
-              {category.label}
-            </button>
-          ))}
-        </div>
 
         {displayItems.length > 0 ? (
           <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6">

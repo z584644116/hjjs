@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { User, AuthMode, Instrument } from '@/types';
+import { User, AuthMode } from '@/types';
 import { STORAGE_KEYS } from '@/constants';
 
 interface AuthStore {
@@ -64,55 +64,3 @@ export const useAuthStore = create<AuthStore>()(
   )
 );
 
-interface InstrumentStore {
-  instruments: Instrument[];
-  
-  // Actions
-  addInstrument: (model: string, maxFlowRate: number) => void;
-  updateInstrument: (id: string, updates: Partial<Instrument>) => void;
-  deleteInstrument: (id: string) => void;
-  getInstrument: (id: string) => Instrument | undefined;
-}
-
-
-export const useInstrumentStore = create<InstrumentStore>()(
-  persist(
-    (set, get) => ({
-      instruments: [],
-
-      addInstrument: (model, maxFlowRate) => {
-        const newInstrument: Instrument = {
-          id: uuidv4(),
-          model,
-          maxFlowRate,
-          createdAt: new Date().toISOString(),
-        };
-
-        set((state) => ({
-          instruments: [...state.instruments, newInstrument],
-        }));
-      },
-
-      updateInstrument: (id, updates) => {
-        set((state) => ({
-          instruments: state.instruments.map((instrument) =>
-            instrument.id === id ? { ...instrument, ...updates } : instrument
-          ),
-        }));
-      },
-
-      deleteInstrument: (id) => {
-        set((state) => ({
-          instruments: state.instruments.filter((instrument) => instrument.id !== id),
-        }));
-      },
-
-      getInstrument: (id) => {
-        return get().instruments.find((instrument) => instrument.id === id);
-      },
-    }),
-    {
-      name: STORAGE_KEYS.INSTRUMENTS,
-    }
-  )
-);

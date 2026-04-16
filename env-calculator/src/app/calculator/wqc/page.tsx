@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import { calculateTitrationAsCaco3 } from '@/lib/calculators';
 
 // Data definitions
 const equivalentWeights: Record<string, number> = {
@@ -62,6 +63,10 @@ export default function WaterQualityQCPage() {
   const [tdsMeasured, setTdsMeasured] = useState('');
   const [ecMeasured, setEcMeasured] = useState('');
   const [hardnessMeasured, setHardnessMeasured] = useState('');
+  const [titrantVolume, setTitrantVolume] = useState('');
+  const [blankVolume, setBlankVolume] = useState('');
+  const [titrantConcentration, setTitrantConcentration] = useState('');
+  const [sampleVolume, setSampleVolume] = useState('');
 
   const [showResult, setShowResult] = useState(false);
 
@@ -170,6 +175,16 @@ export default function WaterQualityQCPage() {
     return { calc, meas, error, ok };
   }, [hardnessMeasured, ca, mg, optCations]);
 
+  const alkalinityHardness = useMemo(() => calculateTitrationAsCaco3({
+    titrantVolumeMl: parseNum(titrantVolume),
+    blankVolumeMl: parseNum(blankVolume),
+    titrantConcentrationMolL: parseNum(titrantConcentration),
+    sampleVolumeMl: parseNum(sampleVolume),
+  }), [blankVolume, sampleVolume, titrantConcentration, titrantVolume]);
+
+  const hasTitrationInput = [titrantVolume, blankVolume, titrantConcentration, sampleVolume]
+    .some((value) => value.trim() !== '');
+
   const solubility = useMemo(() => {
     const caMol = parseNum(ca) / 1000 / 40.08;
     const co3Mol = parseNum(co3) / 1000 / 60.009;
@@ -222,6 +237,10 @@ export default function WaterQualityQCPage() {
     setTdsMeasured('');
     setEcMeasured('');
     setHardnessMeasured('');
+    setTitrantVolume('');
+    setBlankVolume('');
+    setTitrantConcentration('');
+    setSampleVolume('');
     setShowResult(false);
   };
 
@@ -398,6 +417,20 @@ export default function WaterQualityQCPage() {
           </p>
         </div>
 
+        {/* 碱度/硬度换算 */}
+        <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] p-5 shadow-[var(--app-shadow-sm)]">
+          <h3 className="text-base font-semibold text-[var(--app-ink)] mb-4">碱度/硬度换算（以 CaCO₃ 计）</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <NumberInput label="滴定体积 V" unit="mL" value={titrantVolume} onChange={setTitrantVolume} placeholder="例如 12.30" />
+            <NumberInput label="空白体积 V0" unit="mL" value={blankVolume} onChange={setBlankVolume} placeholder="例如 0.05" />
+            <NumberInput label="滴定液浓度 C" unit="mol/L" value={titrantConcentration} onChange={setTitrantConcentration} placeholder="例如 0.0100" />
+            <NumberInput label="样品体积 Vs" unit="mL" value={sampleVolume} onChange={setSampleVolume} placeholder="例如 100" />
+          </div>
+          <p className="mt-3 text-xs text-[var(--app-ink-tertiary)]">
+            mg/L(as CaCO₃) = (V - V0) × C × 50000 / Vs。
+          </p>
+        </div>
+
         {/* 计算结果 */}
         {showResult && (
           <div className="space-y-5">
@@ -501,6 +534,31 @@ export default function WaterQualityQCPage() {
                 },
               ]}
             />
+
+            {/* 碱度/硬度换算 */}
+            {!hasTitrationInput ? (
+              <ResultDisplay
+                title="碱度/硬度换算"
+                standard="结果以 CaCO₃ 计"
+                items={[
+                  { label: '状态', value: '未输入滴定数据' },
+                ]}
+              />
+            ) : 'error' in alkalinityHardness ? (
+              <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
+                {alkalinityHardness.error}
+              </div>
+            ) : (
+              <ResultDisplay
+                title="碱度/硬度换算"
+                standard="结果以 CaCO₃ 计"
+                items={[
+                  { label: '净滴定体积', value: alkalinityHardness.netTitrantVolumeMl.toFixed(3), unit: 'mL' },
+                  { label: '换算结果', value: alkalinityHardness.concentrationMgLAsCaco3.toFixed(3), unit: 'mg/L', status: 'success' },
+                ]}
+                details="mg/L(as CaCO₃) = (V - V0) × C × 50000 / Vs"
+              />
+            )}
 
             {/* 沉淀溶解平衡 */}
             <ResultDisplay

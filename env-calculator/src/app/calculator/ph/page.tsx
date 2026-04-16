@@ -20,8 +20,19 @@ export default function PHCalculatorPage() {
     return computePHStandardValues(temperature);
   }, [temperatureStr]);
 
+  const handleReset = () => {
+    setTemperatureStr("");
+  };
+
   return (
-    <CalculatorShell title="pH 标准值">
+    <CalculatorShell
+      title="pH 标准值"
+      actions={
+        <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+          重置
+        </button>
+      }
+    >
       <section className="space-y-4">
         <NumberInput
           label="温度"

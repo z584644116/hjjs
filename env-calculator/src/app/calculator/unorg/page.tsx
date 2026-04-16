@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Location24Regular } from "@fluentui/react-icons";
 import {
   calculateSolarParams,
@@ -51,7 +51,7 @@ export default function UnorganizedSuitabilityPage() {
     typeof calculateSuitability
   >>(null);
 
-  useEffect(() => {
+  const setCurrentDateTime = useCallback(() => {
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, "0");
@@ -61,6 +61,10 @@ export default function UnorganizedSuitabilityPage() {
     setDateISO(`${y}-${m}-${d}`);
     setTimeHHmm(`${hh}:${mm}`);
   }, []);
+
+  useEffect(() => {
+    setCurrentDateTime();
+  }, [setCurrentDateTime]);
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -181,10 +185,40 @@ export default function UnorganizedSuitabilityPage() {
     }
   };
 
+  const handleReset = () => {
+    setDateISO("");
+    setTimeHHmm("");
+    setLatStr("");
+    setLonStr("");
+    setTotalCloud("");
+    setLowCloud("");
+    setWindSpeedType("custom");
+    setWindSpeedHeightStr("");
+    setTerrain("city");
+    setDirs(Array(10).fill(""));
+    setSpeeds(Array(10).fill(""));
+    setGpsLoading(false);
+    setError("");
+    setStability(null);
+    setSuitability(null);
+  };
+
+  const actions = (
+    <>
+      <button type="button" onClick={handleCalculate} className="app-action-primary flex-1 md:flex-none">
+        开始计算
+      </button>
+      <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+        重置
+      </button>
+    </>
+  );
+
   return (
     <CalculatorShell
       title="大气稳定度与监测适宜度计算"
       description="依据《大气污染物无组织排放监测技术导则 HJ/T 55-2000》"
+      actions={actions}
     >
       {/* Time & Location Card */}
       <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface-secondary)] shadow-[var(--app-shadow-sm)] p-5">
@@ -430,17 +464,6 @@ export default function UnorganizedSuitabilityPage() {
           {error}
         </div>
       )}
-
-      {/* Calculate button */}
-      <div className="flex justify-center">
-        <button
-          type="button"
-          onClick={handleCalculate}
-          className="px-8 py-2.5 rounded-[var(--app-radius-sm)] bg-[var(--app-primary)] text-white text-sm font-semibold hover:bg-[var(--app-primary-hover)] transition-colors shadow-[var(--app-shadow-sm)]"
-        >
-          计算
-        </button>
-      </div>
 
       {/* Stability Results */}
       {stability && (

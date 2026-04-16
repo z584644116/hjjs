@@ -37,10 +37,24 @@ export default function WellCalculatorPage() {
     });
   }, [B, C, D, E, F, G]);
 
+  const handleReset = () => {
+    setB("");
+    setC("");
+    setD("");
+    setE("");
+    setF("");
+    setG("");
+  };
+
   return (
     <CalculatorShell
       title="地下水井水体积计算"
       description="井水深度、埋深与体积快速计算"
+      actions={
+        <button type="button" onClick={handleReset} className="app-action-secondary flex-1 md:flex-none">
+          重置
+        </button>
+      }
     >
       {/* Input Card */}
       <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-line)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)] p-5">
