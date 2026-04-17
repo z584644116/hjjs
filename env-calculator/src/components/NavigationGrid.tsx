@@ -20,6 +20,7 @@ function toActiveCategory(value: string | null): ActiveCategory {
     value === '空气和废气' ||
     value === '水质' ||
     value === '通用与质控' ||
+    value === '实验室分析' ||
     value === '噪声与振动' ||
     value === '评价与指数' ||
     value === '水处理' ||

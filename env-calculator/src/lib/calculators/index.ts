@@ -10,3 +10,5 @@ export * from './soil-qc';
 export * from './treatment';
 export * from './noise';
 export * from './assessment';
+export * from './laboratory';
+export * from './qc-stats';

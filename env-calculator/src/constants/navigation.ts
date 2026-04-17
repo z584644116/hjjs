@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Beaker24Regular,
   Calculator24Regular,
+  ChartMultiple24Regular,
   Cloud24Regular,
   DataUsage24Regular,
   Drop24Regular,
@@ -13,6 +14,7 @@ export type CalculatorCategory =
   | '空气和废气'
   | '水质'
   | '通用与质控'
+  | '实验室分析'
   | '噪声与振动'
   | '评价与指数'
   | '水处理'
@@ -99,6 +101,12 @@ export const calculatorCategories: { key: CalculatorCategory; label: string; dom
     label: '通用与质控',
     domain: '环境检测',
     description: '方法检出限、回收率、精密度和土壤质控计算',
+  },
+  {
+    key: '实验室分析',
+    label: '实验室分析',
+    domain: '环境检测',
+    description: '溶液稀释、标准曲线、样品浓度回算与滴定通用计算',
   },
   {
     key: '噪声与振动',
@@ -371,6 +379,48 @@ const advancedTools: CalculatorNavItem[] = [
     formula: '含水率 W = (m湿 - m干) / m干 × 100%\n损失率 = 损失量 / 制备前重量 × 100%\n过筛率 = 过筛重量 / 总重量 × 100%',
     formulaTex: 'W = \\dfrac{m_{wet} - m_{dry}}{m_{dry}}\\times 100\\%',
     tip: '损失率一般 ≤ 5%;过筛率一般 ≥ 95% 视为合格。',
+  },
+  {
+    id: 'qc-stats',
+    title: '质控统计分析',
+    shortTitle: '质控统计',
+    subtitle: 'RPD / 离群点 / t 检验',
+    description:
+      '平行样 RPD、Grubbs / Dixon 离群点检验、双样本 Welch t 检验四个模块,内嵌 α=0.05 临界值表。',
+    domain: '环境检测',
+    category: '通用与质控',
+    icon: React.createElement(ChartMultiple24Regular),
+    href: '/calculator/qc-stats',
+    badge: '统计',
+    standards: ['GB/T 4883-2008', 'HJ 168-2020', 'GB/T 6379.2-2004'],
+    scene: ['qc', 'lab'],
+    frequency: 'common',
+    formula:
+      'RPD = |x₁ − x₂| / ((x₁ + x₂)/2) × 100%\nGrubbs G = |x − x̄| / s,G > G_crit → 离群\nDixon r(n) = 相邻差 / 极差,r > r_crit → 离群\nt = (x̄₁ − x̄₂) / √(s₁²/n₁ + s₂²/n₂)',
+    formulaTex:
+      'G = \\dfrac{|x_{\\mathrm{ext}} - \\bar x|}{s},\\quad t = \\dfrac{\\bar x_1 - \\bar x_2}{\\sqrt{s_1^2/n_1 + s_2^2/n_2}}',
+    tip: 'RPD 分 10%/20%/30%/50% 四档;Grubbs 要求近似正态;Dixon 适 n ≤ 30;t 检验双边 α=0.05。',
+  },
+  {
+    id: 'laboratory-analysis',
+    title: '实验室分析计算',
+    shortTitle: '实验室分析',
+    subtitle: '稀释 / 曲线 / 回算 / 滴定',
+    description:
+      '覆盖溶液稀释(单级 + 连续)、标准曲线线性回归、样品浓度回算、滴定通用模板共 4 个实验台高频公式。',
+    domain: '环境检测',
+    category: '实验室分析',
+    icon: React.createElement(Beaker24Regular),
+    href: '/calculator/laboratory',
+    badge: '台面',
+    standards: ['ICH Q2(R1)', 'HJ 168-2020', 'GB/T 601-2016'],
+    scene: ['lab', 'qc'],
+    frequency: 'common',
+    formula:
+      '单级 C₁V₁ = C₂V₂;连续 perStep = (C₀/C_f)^(1/n)\ny = a·x + b,R²,MDL = 3.3·s(y/x)/|a|,LOQ = 10·s(y/x)/|a|\nρ = (C_inst − C_b)·V_f·f / V_s 或 m_s·(1 − w)\nc_x = (c_T·V_net / n_rxn)·f / V_s',
+    formulaTex:
+      '\\mathrm{MDL} = \\dfrac{3.3\\,s_{y/x}}{|a|},\\quad c_x = \\dfrac{c_T\\,V_{net}\\,f}{n_{rxn}\\,V_s}',
+    tip: '4 模块独立 state;R² < 0.999 告警,回归 MDL 仅作初筛,报备用 HJ 168 平行样 MDL。',
   },
   {
     id: 'noise-calculator',

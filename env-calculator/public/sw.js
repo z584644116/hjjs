@@ -4,7 +4,7 @@
 //  - 静态资源:stale-while-revalidate,离线可用
 //  - 非 GET / 跨源请求:直接透传,不拦截
 
-const CACHE = 'env-calc-v1';
+const CACHE = 'env-calc-v2';
 const APP_SHELL = ['/', '/manifest.webmanifest', '/icon.svg'];
 
 self.addEventListener('install', (event) => {
