@@ -16,7 +16,11 @@ export default function FlueGasCalculatorPage() {
     const measuredConc = inputs.c === '' ? NaN : parseFloat(inputs.c.replace(',', '.'));
     const refO2 = inputs.ro2 === '' ? NaN : parseFloat(inputs.ro2.replace(',', '.'));
     const measO2 = inputs.mo2 === '' ? NaN : parseFloat(inputs.mo2.replace(',', '.'));
-    return calculateFlueGasConversion(measuredConc, refO2, measO2);
+    return calculateFlueGasConversion({
+      measuredConcentration: measuredConc,
+      referenceO2: refO2,
+      measuredO2: measO2,
+    });
   }, [inputs.c, inputs.ro2, inputs.mo2]);
 
   const hasError = 'error' in result;
@@ -24,7 +28,8 @@ export default function FlueGasCalculatorPage() {
   const summary = useMemo(() => {
     if (hasError) return '';
     if (!inputs.c || !inputs.ro2 || !inputs.mo2) return '';
-    return `折算浓度 ${result.convertedConcentration.toFixed(2)} · 实测 ${inputs.c} / 基准 O2 ${inputs.ro2}% / 实测 O2 ${inputs.mo2}%`;
+    const r = result as NonNullable<Exclude<typeof result, { error: string }>>;
+    return `折算浓度 ${r.convertedConcentration.toFixed(2)} · 实测 ${inputs.c} / 基准 O2 ${inputs.ro2}% / 实测 O2 ${inputs.mo2}%`;
   }, [hasError, result, inputs.c, inputs.ro2, inputs.mo2]);
 
   useRecordHistory(summary);
@@ -89,36 +94,64 @@ export default function FlueGasCalculatorPage() {
           {result.error}
         </div>
       ) : (
-        <ResultDisplay
-          items={[
-            {
-              label: '折算后污染物浓度',
-              value: result.convertedConcentration.toFixed(2),
-              status: 'success',
-            },
-            {
-              label: '折算系数',
-              value: result.conversionFactor.toFixed(4),
-              status: 'neutral',
-            },
-            {
-              label: '实测浓度',
-              value: inputs.c || '-',
-              status: 'neutral',
-            },
-            {
-              label: '基准氧含量',
-              value: inputs.ro2 ? `${inputs.ro2}%` : '-',
-              status: 'neutral',
-            },
-            {
-              label: '实测氧含量',
-              value: inputs.mo2 ? `${inputs.mo2}%` : '-',
-              status: 'neutral',
-            },
-          ]}
-          details="结果已按四舍六入五成双规则修约至小数点后两位"
-        />
+        <>
+          <ResultDisplay
+            items={[
+              {
+                label: '折算后污染物浓度',
+                value: result.convertedConcentration.toFixed(2),
+                status: 'success',
+              },
+              {
+                label: '折算系数',
+                value: result.conversionFactor.toFixed(4),
+                status: 'neutral',
+              },
+              {
+                label: '实测浓度',
+                value: inputs.c || '-',
+                status: 'neutral',
+              },
+              {
+                label: '基准氧含量',
+                value: inputs.ro2 ? `${inputs.ro2}%` : '-',
+                status: 'neutral',
+              },
+              {
+                label: '实测氧含量',
+                value: inputs.mo2 ? `${inputs.mo2}%` : '-',
+                status: 'neutral',
+              },
+            ]}
+            details="结果已按四舍六入五成双规则修约至小数点后两位"
+          />
+
+          {/* 警告信息 */}
+          {result.warnings.length > 0 && (
+            <div className="rounded-lg border px-4 py-3 text-sm">
+              <div className="mb-2 font-semibold">警告信息</div>
+              {result.warnings.map((w, i) => (
+                <div
+                  key={i}
+                  className={`mb-1 ${
+                    w.level === 'danger' ? 'text-red-700' :
+                    w.level === 'warning' ? 'text-yellow-700' : 'text-blue-700'
+                  }`}
+                >
+                  <span className="font-medium">{w.level === 'danger' ? '⚠ 危险' : w.level === 'warning' ? '⚡ 警告' : 'ℹ 提示'}:</span> {w.message}
+                  {w.suggestion && <div className="mt-1 text-xs opacity-70 ml-5">{w.suggestion}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 干湿基说明 */}
+          {result.basisNote && (
+            <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 text-sm text-gray-700">
+              <span className="font-semibold">浓度基准:</span> {result.basisNote}
+            </div>
+          )}
+        </>
       )}
     </CalculatorShell>
   );

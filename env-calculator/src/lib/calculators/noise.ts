@@ -1,37 +1,109 @@
 import { CalculationError, requireNonNegative, requirePositive, roundTo } from './common';
+import { CalculationWarning, FormulaMeta } from './types';
 
 // =========================================================================
 // 1. 等效连续 A 声级 Leq
 // =========================================================================
 
+export type LeqMode = 'equal-interval' | 'weighted-duration';
+
+export interface LeqEntry {
+  /** 单次声级 Li (dB(A)) */
+  level: number;
+  /** 对应持续时间 ti，weighted-duration 模式必填 */
+  durationSeconds?: number;
+}
+
 export interface LeqResult {
+  mode: LeqMode;
   count: number;
   leq: number;
   lmin: number;
   lmax: number;
   lrange: number;
+  warnings: CalculationWarning[];
+  meta: FormulaMeta;
 }
 
-/**
- * 等效连续 A 声级 Leq = 10·lg(1/n · Σ 10^(Li/10))
- * 依据:GB 3096 / GB 12348 / GB 12523。
- */
-export function calculateLeq(values: number[]): LeqResult | CalculationError {
-  const valid = values.filter((x) => Number.isFinite(x));
-  if (valid.length < 1) return { error: '至少需要 1 个声级读数' };
+const LEQ_META: FormulaMeta = {
+  formulaName: '等效连续 A 声级 Leq',
+  formulaText: '等间隔：Leq=10·lg(1/n·Σ10^(Li/10))；加权：Leq=10·lg(Σti·10^(Li/10)/Σti)',
+  formulaType: 'standard-method',
+  resultLevel: 'internal-check',
+  references: ['GB 3096', 'GB 12348', 'GB 12523'],
+  applicability: ['环境噪声/厂界噪声/施工噪声等效声级统计'],
+  limitations: [
+    '等间隔模式假设每个读数的时间权重相等，不适合波动较大的连续测量',
+    '加权模式必须提供每段持续时间，且总时长 > 0',
+  ],
+};
 
-  const n = valid.length;
-  const sumEnergy = valid.reduce((s, l) => s + Math.pow(10, l / 10), 0);
-  const leq = 10 * Math.log10(sumEnergy / n);
-  const lmin = Math.min(...valid);
-  const lmax = Math.max(...valid);
+/**
+ * 等效连续 A 声级。
+ * - equal-interval：Leq = 10·lg(1/n · Σ 10^(Li/10))
+ * - weighted-duration：Leq = 10·lg(Σ ti·10^(Li/10) / Σ ti)
+ */
+export function calculateLeq(
+  values: number[] | LeqEntry[],
+  mode: LeqMode = 'equal-interval',
+): LeqResult | CalculationError {
+  const warnings: CalculationWarning[] = [];
+
+  // 兼容旧签名：直接传 number[] 视作等间隔。
+  const entries: LeqEntry[] = Array.isArray(values) && values.length > 0 && typeof values[0] === 'object'
+    ? (values as LeqEntry[])
+    : (values as number[]).map((v) => ({ level: v }));
+
+  const validEntries = entries.filter((e) => Number.isFinite(e.level));
+  if (validEntries.length < 1) return { error: '至少需要 1 个有效声级读数' };
+
+  let leq: number;
+
+  if (mode === 'weighted-duration') {
+    const withDuration = validEntries.filter(
+      (e) => Number.isFinite(e.durationSeconds) && (e.durationSeconds ?? 0) > 0,
+    );
+    if (withDuration.length === 0) {
+      return { error: 'weighted-duration 模式需要每条记录提供 > 0 的 durationSeconds' };
+    }
+    if (withDuration.length < validEntries.length) {
+      warnings.push({
+        level: 'warning',
+        message: `${validEntries.length - withDuration.length} 条记录缺少有效时长，已从加权平均中忽略`,
+      });
+    }
+    const totalT = withDuration.reduce((s, e) => s + (e.durationSeconds ?? 0), 0);
+    const sumEnergy = withDuration.reduce(
+      (s, e) => s + (e.durationSeconds ?? 0) * Math.pow(10, e.level / 10),
+      0,
+    );
+    leq = 10 * Math.log10(sumEnergy / totalT);
+  } else {
+    const sumEnergy = validEntries.reduce((s, e) => s + Math.pow(10, e.level / 10), 0);
+    leq = 10 * Math.log10(sumEnergy / validEntries.length);
+  }
+
+  const levels = validEntries.map((e) => e.level);
+  const lmin = Math.min(...levels);
+  const lmax = Math.max(...levels);
+
+  if (lmax - lmin > 20) {
+    warnings.push({
+      level: 'info',
+      message: `声级最大最小差 ${(lmax - lmin).toFixed(1)} dB 较大`,
+      suggestion: '波动较大时等间隔 Leq 可能不代表能量平均，建议改用 weighted-duration 或重新采样',
+    });
+  }
 
   return {
-    count: n,
+    mode,
+    count: validEntries.length,
     leq: roundTo(leq, 1),
     lmin: roundTo(lmin, 1),
     lmax: roundTo(lmax, 1),
     lrange: roundTo(lmax - lmin, 1),
+    warnings,
+    meta: LEQ_META,
   };
 }
 
@@ -56,8 +128,6 @@ export function calculateStatLevels(values: number[]): StatLevelsResult | Calcul
   const valid = values.filter((x) => Number.isFinite(x));
   if (valid.length < 3) return { error: '统计声级至少需要 3 个读数,建议 ≥100 个' };
 
-  // 升序:index 0 是最小值;从低到高排。
-  // L_x = 第 "(100-x)/100 · (n-1)" 位的值(线性插值)
   const sorted = [...valid].sort((a, b) => a - b);
   const percentile = (p: number) => {
     const pos = ((100 - p) / 100) * (sorted.length - 1);
@@ -89,7 +159,6 @@ export interface SoundSumResult {
 
 /**
  * 多声源叠加:Ltotal = 10·lg(Σ 10^(Li/10))。
- * 示例:两个 80 dB 点声源叠加为 83 dB。
  */
 export function calculateSoundSum(values: number[]): SoundSumResult | CalculationError {
   const valid = values.filter((x) => Number.isFinite(x));
@@ -107,23 +176,31 @@ export function calculateSoundSum(values: number[]): SoundSumResult | Calculatio
 }
 
 // =========================================================================
-// 4. 距离衰减(点声源自由场)
+// 4. 距离衰减：点声源 / 线声源 / 未知
 // =========================================================================
+
+export type NoiseSourceType = 'point' | 'line' | 'unknown';
 
 export interface DistanceDecayInput {
   sourceLevel: number;
   r1: number;
   r2: number;
+  sourceType?: NoiseSourceType;
 }
 
 export interface DistanceDecayResult {
+  sourceType: NoiseSourceType;
   decay: number;
   targetLevel: number;
+  formulaText: string;
+  warnings: CalculationWarning[];
 }
 
 /**
- * 点声源自由场距离衰减:ΔL = 20·lg(r2/r1),L2 = L1 - ΔL。
- * 线声源按 10·lg(r2/r1) 使用,这里只做点声源。
+ * 距离衰减：
+ *   点声源 ΔL = 20·lg(r2/r1)
+ *   线声源 ΔL = 10·lg(r2/r1)
+ *   unknown：使用点声源近似，但要求用户确认声源性质
  */
 export function calculateDistanceDecay(input: DistanceDecayInput): DistanceDecayResult | CalculationError {
   const lErr = requireNonNegative(input.sourceLevel, '源声级');
@@ -133,10 +210,35 @@ export function calculateDistanceDecay(input: DistanceDecayInput): DistanceDecay
   const r2Err = requirePositive(input.r2, '目标距离 r2');
   if (r2Err) return r2Err;
 
-  const decay = 20 * Math.log10(input.r2 / input.r1);
+  const sourceType: NoiseSourceType = input.sourceType ?? 'unknown';
+  const warnings: CalculationWarning[] = [];
+  let coefficient = 20;
+  let formulaText = 'ΔL = 20·lg(r2/r1) (点声源)';
+
+  if (sourceType === 'line') {
+    coefficient = 10;
+    formulaText = 'ΔL = 10·lg(r2/r1) (线声源近似)';
+  } else if (sourceType === 'unknown') {
+    warnings.push({
+      level: 'warning',
+      message: '未指定声源类型，默认按点声源计算',
+      suggestion: '道路/铁路类线声源应选择 line 模式',
+    });
+  }
+
+  warnings.push({
+    level: 'info',
+    message: '距离衰减公式为理想自由场近似',
+    suggestion: '实际室外传播还受地面吸收、屏障、气象等影响，必要时按 GB/T 3222 等进行现场校核',
+  });
+
+  const decay = coefficient * Math.log10(input.r2 / input.r1);
   return {
+    sourceType,
     decay: roundTo(decay, 1),
     targetLevel: roundTo(input.sourceLevel - decay, 1),
+    formulaText,
+    warnings,
   };
 }
 
@@ -156,14 +258,15 @@ export interface BackgroundCorrectionResult {
   corrected: number | null;
   rule: BackgroundCorrectionRule;
   ruleText: string;
+  warnings: CalculationWarning[];
 }
 
 /**
  * 背景值修正(GB 12348):
  *   ΔL = L_测 - L_背
- *   ΔL < 3 dB:测量不可靠,需要降低背景后重测
- *   3 ≤ ΔL < 10 dB:对数修正 L_源 = 10·lg(10^(L_测/10) - 10^(L_背/10))
- *   ΔL ≥ 10 dB:无需修正,测量值即为声源值
+ *   ΔL < 3 dB：测量不可靠，需要降低背景后重测
+ *   3 ≤ ΔL < 10 dB：对数修正 L_源 = 10·lg(10^(L_测/10) - 10^(L_背/10))
+ *   ΔL ≥ 10 dB：无需修正，测量值即为声源值
  */
 export function calculateBackgroundCorrection(input: BackgroundCorrectionInput): BackgroundCorrectionResult | CalculationError {
   const mErr = requireNonNegative(input.measured, '测量声级');
@@ -175,13 +278,20 @@ export function calculateBackgroundCorrection(input: BackgroundCorrectionInput):
   }
 
   const delta = input.measured - input.background;
+  const warnings: CalculationWarning[] = [];
 
   if (delta < 3) {
+    warnings.push({
+      level: 'danger',
+      message: `测量值与背景差 ${delta.toFixed(1)} dB < 3 dB`,
+      suggestion: '背景影响过大，应先降低背景（停机/换时段）后重测；不应强行修正',
+    });
     return {
       delta: roundTo(delta, 1),
       corrected: null,
       rule: 'invalid',
-      ruleText: 'ΔL < 3 dB,测量不可靠,应在背景声级降低后重测。',
+      ruleText: 'ΔL < 3 dB，测量不可靠，应在背景声级降低后重测。',
+      warnings,
     };
   }
 
@@ -190,18 +300,27 @@ export function calculateBackgroundCorrection(input: BackgroundCorrectionInput):
       delta: roundTo(delta, 1),
       corrected: roundTo(input.measured, 1),
       rule: 'no-correction',
-      ruleText: 'ΔL ≥ 10 dB,无需修正,测量值即为声源声级。',
+      ruleText: 'ΔL ≥ 10 dB，无需修正，测量值即为声源声级。',
+      warnings,
     };
   }
 
   const sourceLevel = 10 * Math.log10(
     Math.pow(10, input.measured / 10) - Math.pow(10, input.background / 10),
   );
+
+  warnings.push({
+    level: 'info',
+    message: `3 ≤ ΔL(${delta.toFixed(1)}) < 10 dB，按对数修正公式计算`,
+    suggestion: '建议保留原始读数与背景读数，便于审核',
+  });
+
   return {
     delta: roundTo(delta, 1),
     corrected: roundTo(sourceLevel, 1),
     rule: 'logarithmic',
-    ruleText: `ΔL = ${delta.toFixed(1)} dB,使用对数修正公式。`,
+    ruleText: `ΔL = ${delta.toFixed(1)} dB，使用对数修正公式。`,
+    warnings,
   };
 }
 
@@ -221,8 +340,6 @@ export interface SabineResult {
 
 /**
  * Sabine 混响时间公式:T60 = 0.161·V/A
- *   V 房间体积(m³),A 总吸声量 = Σ αi·Si(m² Sabins)
- * 参考:建声 JGJ/T 131 经验公式。
  */
 export function calculateSabineReverb(input: SabineInput): SabineResult | CalculationError {
   const vErr = requirePositive(input.volume, '房间体积');
@@ -241,9 +358,7 @@ export function calculateSabineReverb(input: SabineInput): SabineResult | Calcul
 // =========================================================================
 
 export interface BarrierInput {
-  /** 衍射程差 δ (m):声绕射过障碍物边缘的实际路径与直线距离之差。 */
   pathDifference: number;
-  /** 关心的中心频率(Hz),默认 500 Hz(交通噪声常用)。 */
   frequency: number;
 }
 
@@ -253,12 +368,7 @@ export interface BarrierResult {
 }
 
 /**
- * 声屏障 Maekawa-Kurze-Anderson 插入损失:
- *   菲涅尔数 N = 2δ/λ
- *   IL = 5 + 20·lg[√(2πN)/tanh(√(2πN))]  (N > 0)
- *   IL = 5 + 20·lg[√(2π|N|)/tan(√(2π|N|))]  (-0.1924 < N < 0)
- *   IL = 0  (N ≤ -0.1924)
- *   顶值钳 24 dB(理论极限,一般按 20~24 dB 取)
+ * 声屏障 Maekawa-Kurze-Anderson 插入损失。
  */
 export function calculateBarrierLoss(input: BarrierInput): BarrierResult | CalculationError {
   const dErr = requireNonNegative(input.pathDifference, '衍射程差');
@@ -266,7 +376,7 @@ export function calculateBarrierLoss(input: BarrierInput): BarrierResult | Calcu
   const fErr = requirePositive(input.frequency, '中心频率');
   if (fErr) return fErr;
 
-  const c = 340; // 声速 m/s
+  const c = 340;
   const lambda = c / input.frequency;
   const N = 2 * input.pathDifference / lambda;
 

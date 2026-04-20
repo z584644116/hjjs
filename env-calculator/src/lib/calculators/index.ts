@@ -1,3 +1,4 @@
+export * from './types';
 export * from './common';
 export * from './air-conc';
 export * from './isokinetic';
@@ -11,4 +12,5 @@ export * from './treatment';
 export * from './noise';
 export * from './assessment';
 export * from './laboratory';
+export * from './dilution';
 export * from './qc-stats';

@@ -1,4 +1,5 @@
 import { CalculationError, requirePositive, roundTo } from './common';
+import { CalculationWarning, FormulaMeta } from './types';
 
 // =========================================================================
 // 1. 综合污染指数 P (适用于大气、水质、土壤等单因子比值 Ci/Si 的平均)
@@ -22,6 +23,8 @@ export interface PollutionIndexResult {
   maxIndex: number;
   maxItem: string;
   category: string;
+  warnings: CalculationWarning[];
+  meta: FormulaMeta;
 }
 
 function categoryFromAverageIndex(p: number): string {
@@ -57,12 +60,41 @@ export function calculatePollutionIndex(items: PollutionIndexItem[]): PollutionI
   const maxItem = processed.reduce((m, p) => (p.singleIndex > m.singleIndex ? p : m), processed[0]);
   const p = sum / processed.length;
 
+  const warnings: CalculationWarning[] = [
+    {
+      level: 'info',
+      message: '本模块按通用单因子比值 Ci/Si 计算指数',
+      suggestion: 'pH、DO 等特殊指标不适用通用 Ci/Si，需按各自评价体系单独处理',
+    },
+  ];
+  for (const item of processed) {
+    if (item.exceeded) {
+      warnings.push({
+        level: 'warning',
+        message: `${item.name} 单因子指数 ${item.singleIndex} > 1，已超标`,
+      });
+    }
+  }
+
   return {
     items: processed,
     averageIndex: roundTo(p, 3),
     maxIndex: roundTo(maxItem.singleIndex, 3),
     maxItem: maxItem.name,
     category: categoryFromAverageIndex(p),
+    warnings,
+    meta: {
+      formulaName: '综合污染指数 P',
+      formulaText: 'P = (1/n)·Σ (Ci/Si)',
+      formulaType: 'teaching-reference',
+      resultLevel: 'internal-check',
+      references: ['HJ 663', 'GB 3838'],
+      applicability: ['大气/水质/土壤多因子相对污染程度辅助评估'],
+      limitations: [
+        'pH、DO 等特殊指标不能套用 Ci/Si 通用公式',
+        '分类阈值仅为经验参考，不同地区/标准可能不同',
+      ],
+    },
   };
 }
 
@@ -127,7 +159,23 @@ export interface TliResult {
   tliCOD: number;
   tli: number;
   category: string;
+  warnings: CalculationWarning[];
+  meta: FormulaMeta;
 }
+
+const TLI_META: FormulaMeta = {
+  formulaName: '综合营养状态指数 TLI(Σ)',
+  formulaText: 'TLI(Σ) = Σ Wj·TLI(j)，Chla/TP/TN/SD/CODMn 权重分别为 0.2663/0.1879/0.179/0.1834/0.1834',
+  formulaType: 'teaching-reference',
+  resultLevel: 'internal-check',
+  references: ['GB 3838-2002 附录', '《地表水环境质量评价办法(试行)》(环办[2011]22 号)'],
+  applicability: ['湖泊/水库富营养化辅助评价'],
+  limitations: [
+    '不同评价体系的指标选择、权重和分类标准可能不同，本模块仅按当前内置公式辅助计算',
+    '对数项要求所有五个参数为正值，0 / 负值不可参与计算',
+    '透明度 SD 单位为 m，叶绿素 a 单位为 mg/m³ (= μg/L)',
+  ],
+};
 
 function categoryFromTli(tli: number): string {
   if (tli < 30) return '贫营养';
@@ -169,6 +217,32 @@ export function calculateTli(input: TliInput): TliResult | CalculationError {
   const w = { chl: 0.2663, tp: 0.1879, tn: 0.179, sd: 0.1834, cod: 0.1834 };
   const tli = w.chl * tliChl + w.tp * tliTP + w.tn * tliTN + w.sd * tliSD + w.cod * tliCOD;
 
+  const warnings: CalculationWarning[] = [
+    {
+      level: 'info',
+      message: '单位要求：Chla mg/m³(≈μg/L)、TP mg/L、TN mg/L、SD m、CODMn mg/L',
+      suggestion: '录入前请确认实测数据单位与此一致',
+    },
+    {
+      level: 'info',
+      message: '本模块为辅助评价，不同评价体系指标选择/权重/分类可能不同',
+      suggestion: '正式评价请按现行标准文件核对',
+    },
+  ];
+
+  if (input.secchiDepth > 5) {
+    warnings.push({
+      level: 'warning',
+      message: `透明度 SD=${input.secchiDepth} m 偏大，请确认是否为 m(非 cm)`,
+    });
+  }
+  if (input.chlorophyllA > 1000) {
+    warnings.push({
+      level: 'warning',
+      message: `叶绿素 a=${input.chlorophyllA} mg/m³ 偏大，请确认单位`,
+    });
+  }
+
   return {
     tliChl: roundTo(tliChl, 1),
     tliTP: roundTo(tliTP, 1),
@@ -177,6 +251,8 @@ export function calculateTli(input: TliInput): TliResult | CalculationError {
     tliCOD: roundTo(tliCOD, 1),
     tli: roundTo(tli, 1),
     category: categoryFromTli(tli),
+    warnings,
+    meta: TLI_META,
   };
 }
 

@@ -15,7 +15,8 @@ export default function RsdPage() {
 
   const summary = useMemo(() => {
     if ('error' in result) return '';
-    return `RSD ${result.rsdPercent.toFixed(2)}% · 均值 ${result.average.toFixed(4)} · n=${result.count}`;
+    const rsdText = result.rsdPercent === null ? 'N/A (均值≈0)' : `${result.rsdPercent.toFixed(2)}%`;
+    return `RSD ${rsdText} · 均值 ${result.average.toFixed(4)} · n=${result.count}`;
   }, [result]);
 
   useRecordHistory(summary);
@@ -55,7 +56,7 @@ export default function RsdPage() {
             { label: '有效数据个数', value: result.count },
             { label: '平均值', value: result.average.toFixed(6) },
             { label: '样本标准偏差 s', value: result.standardDeviation.toFixed(6) },
-            { label: 'RSD', value: result.rsdPercent.toFixed(2), unit: '%', status: result.rsdPercent <= 10 ? 'success' : 'warning' },
+            { label: 'RSD', value: result.rsdPercent === null ? 'N/A' : result.rsdPercent.toFixed(2), unit: result.rsdPercent === null ? undefined : '%', status: result.rsdPercent !== null && result.rsdPercent <= 10 ? 'success' : 'warning' },
           ]}
           details={`原始有效值:${parsedValues.join(', ')}`}
         />

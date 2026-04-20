@@ -52,7 +52,7 @@ export default function GasConverterPage() {
       : parseFloat(inputs.P.replace(",", "."));
 
   const summary = useMemo(() => {
-    if (!result || !Number.isFinite(result.outputValue) || inputs.v === "") return "";
+    if (!result || 'error' in result || !Number.isFinite(result.outputValue) || inputs.v === "") return "";
     return `${gas}: ${inputs.v} ${inputUnit} → ${result.outputValue.toFixed(2)} ${result.outputUnit}`;
   }, [result, gas, inputs.v, inputUnit]);
 
@@ -141,7 +141,7 @@ export default function GasConverterPage() {
         items={[
           {
             label: "换算结果",
-            value: result && Number.isFinite(result.outputValue)
+            value: result && !('error' in result) && Number.isFinite(result.outputValue)
               ? `${result.outputValue.toFixed(2)} ${result.outputUnit}`
               : "--",
             status: "success",

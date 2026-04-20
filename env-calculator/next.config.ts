@@ -39,8 +39,15 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   allowedDevOrigins: [
+    "localhost",
+    "127.0.0.1",
+    "http://localhost:9999",
+    "http://127.0.0.1:9999",
     "http://192.168.31.126:9998",
     "http://192.168.31.126:9999",
+    "http://192.168.2.218:9998",
+    "http://192.168.2.218:9999",
+    "192.168.2.218",
   ],
   images: {
     unoptimized: true,

@@ -14,7 +14,7 @@ import {
 
 const modeLabels: Record<AirConcentrationMode, string> = {
   'ambient-pm': '环境空气 PM',
-  'stack-pm': '固定源颗粒物',
+  'stack-pm-simple': '固定源颗粒物(简化)',
 };
 
 export default function AirConcentrationPage() {
@@ -29,7 +29,7 @@ export default function AirConcentrationPage() {
   });
 
   const mode: AirConcentrationMode =
-    inputs.mode === 'stack-pm' ? 'stack-pm' : 'ambient-pm';
+    inputs.mode === 'stack-pm-simple' ? 'stack-pm-simple' : 'ambient-pm';
 
   const result = useMemo(() => calculateAirConcentration({
     mode,

@@ -1,14 +1,29 @@
-export interface CalculationError {
-  error: string;
-}
+import { CalculationError } from './types';
+export type { CalculationError } from './types';
 
-export function isFiniteNumber(value: number): boolean {
-  return Number.isFinite(value);
-}
+// =========================================================================
+// 常量定义
+// =========================================================================
 
-/**
- * 四舍六入五成双。所有新增公式统一从这里修约。
- */
+export const STANDARD_ATMOSPHERE_KPA = 101.325;
+export const STANDARD_TEMPERATURE_K = 273.15;
+export const AIR_DENSITY_0C_1ATM_KG_M3 = 1.293;
+export const GRAVITY_ACCELERATION = 9.80665;
+export const DEFAULT_COVERAGE_FACTOR_K = 2;
+export const UNIFORM_DISTRIBUTION_DIVISOR = Math.sqrt(3);
+export const EPSILON = 1e-12;
+
+// 通用气体常数 L·atm/(mol·K)
+export const GAS_CONSTANT_R_L_ATM = 0.082057338;
+
+// 标准温度
+export const GAS_STANDARD_TEMP_0C = 0;
+export const GAS_LAB_TEMP_25C = 25;
+
+// =========================================================================
+// 四舍六入五成双
+// =========================================================================
+
 export function roundHalfToEven(value: number, decimals = 2): number {
   if (!Number.isFinite(value)) return value;
 
@@ -31,6 +46,18 @@ export function roundTo(value: number, decimals = 2): number {
   return roundHalfToEven(value, decimals);
 }
 
+// =========================================================================
+// 通用校验函数
+// =========================================================================
+
+export function isFiniteNumber(value: number): boolean {
+  return Number.isFinite(value);
+}
+
+export function isNearlyZero(value: number, epsilon = EPSILON): boolean {
+  return Math.abs(value) < epsilon;
+}
+
 export function requireNonNegative(value: number, label: string): CalculationError | null {
   if (!isFiniteNumber(value)) return { error: `请输入有效的${label}` };
   if (value < 0) return { error: `${label}不能为负值` };
@@ -42,6 +69,60 @@ export function requirePositive(value: number, label: string): CalculationError 
   if (value <= 0) return { error: `${label}必须大于 0` };
   return null;
 }
+
+export function requireBetween(value: number, min: number, max: number, label: string): CalculationError | null {
+  if (!isFiniteNumber(value)) return { error: `请输入有效的${label}` };
+  if (value < min || value > max) {
+    return { error: `${label}必须在 ${min} ~ ${max} 范围内` };
+  }
+  return null;
+}
+
+export function requireFinite(value: number, label: string): CalculationError | null {
+  if (!isFiniteNumber(value)) return { error: `请输入有效的${label}` };
+  return null;
+}
+
+export function requireGreaterThan(value: number, threshold: number, label: string): CalculationError | null {
+  if (!isFiniteNumber(value)) return { error: `请输入有效的${label}` };
+  if (value <= threshold) return { error: `${label}必须大于 ${threshold}` };
+  return null;
+}
+
+export function requireLessThan(value: number, threshold: number, label: string): CalculationError | null {
+  if (!isFiniteNumber(value)) return { error: `请输入有效的${label}` };
+  if (value >= threshold) return { error: `${label}必须小于 ${threshold}` };
+  return null;
+}
+
+/**
+ * 安全除法
+ */
+export function safeDivide(
+  numerator: number,
+  denominator: number,
+  label = '分母'
+): number | CalculationError {
+  if (!Number.isFinite(numerator) || !Number.isFinite(denominator)) {
+    return { error: '请输入有效数字' };
+  }
+  if (Math.abs(denominator) < EPSILON) {
+    return { error: `${label}接近 0，无法可靠计算` };
+  }
+  return numerator / denominator;
+}
+
+/**
+ * 百分偏差
+ */
+export function percentDeviation(actual: number, target: number): number {
+  if (Math.abs(target) < EPSILON) return NaN;
+  return ((actual - target) / target) * 100;
+}
+
+// =========================================================================
+// 数值输入解析
+// =========================================================================
 
 export function parseDecimalInput(value: string): number {
   return value.trim() === '' ? NaN : Number(value.replace(',', '.'));
@@ -58,15 +139,12 @@ export function parseNumberList(value: string): number[] {
 
 function sanitizeMantissa(s: string): string {
   if (!s) return '';
-  // 尾数不允许 +
   let r = s.replace(/\+/g, '');
-  // 第一个字符可为 -,其后 - 全部剔除
   if (r.length > 1) {
     r = r[0] === '-'
       ? '-' + r.slice(1).replace(/-/g, '')
       : r.replace(/-/g, '');
   }
-  // 最多一个小数点
   const parts = r.split('.');
   if (parts.length > 2) r = parts[0] + '.' + parts.slice(1).join('');
   return r;
@@ -74,7 +152,6 @@ function sanitizeMantissa(s: string): string {
 
 function sanitizeExponent(s: string): string {
   if (!s) return '';
-  // 指数不允许小数点
   const stripped = s.replace(/\./g, '');
   const first = stripped[0];
   const sign = first === '+' || first === '-' ? first : '';
@@ -83,13 +160,7 @@ function sanitizeExponent(s: string): string {
 }
 
 /**
- * 清洗数值输入字符串,保留用户打字的中间态(如 "1.","-","1e","1e-")。
- * 支持:
- *   - 可选的开头负号
- *   - 小数点(仅尾数,最多一个),`,` 自动转 `.`
- *   - 可选的科学计数法 e/E,后接可选 +/- 再接数字
- *
- * 仅做字符层面的合法性过滤,不做完整性校验。解析成数字请用 `parseDecimalInput`。
+ * 清洗数值输入字符串
  */
 export function sanitizeNumericInput(raw: string): string {
   if (!raw) return '';
@@ -102,7 +173,50 @@ export function sanitizeNumericInput(raw: string): string {
 
   const mantissa = s.slice(0, eIndex);
   const eChar = s[eIndex];
-  // 仅保留第一个 e/E,之后出现的全部剔除
   const after = s.slice(eIndex + 1).replace(/[eE]/g, '');
   return sanitizeMantissa(mantissa) + eChar + sanitizeExponent(after);
+}
+
+// =========================================================================
+// 辅助函数
+// =========================================================================
+
+/**
+ * 线性插值
+ */
+export function lerp(y0: number, y1: number, t: number): number {
+  return y0 + (y1 - y0) * t;
+}
+
+/**
+ * 获取数组统计量
+ */
+export function arrayStats(values: number[]): {
+  count: number;
+  mean: number;
+  variance: number;
+  stdev: number;
+  min: number;
+  max: number;
+  range: number;
+} | CalculationError {
+  const valid = values.filter(Number.isFinite);
+  if (valid.length === 0) return { error: '没有有效数据' };
+
+  const count = valid.length;
+  const mean = valid.reduce((s, v) => s + v, 0) / count;
+  const variance = valid.reduce((s, v) => s + (v - mean) ** 2, 0) / (count - 1);
+  const stdev = Math.sqrt(variance);
+  const min = Math.min(...valid);
+  const max = Math.max(...valid);
+
+  return {
+    count,
+    mean,
+    variance,
+    stdev,
+    min,
+    max,
+    range: max - min,
+  };
 }

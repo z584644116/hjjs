@@ -4,6 +4,8 @@ import React, { useMemo } from 'react';
 import CalculatorShell from '@/components/CalculatorShell';
 import NumberInput from '@/components/NumberInput';
 import ResultDisplay from '@/components/ResultDisplay';
+import WarningList from '@/components/WarningList';
+import CollapsibleSection from '@/components/CollapsibleSection';
 import { useUrlState } from '@/hooks/useUrlState';
 import { useRecordHistory } from '@/hooks/useRecordHistory';
 import {
@@ -71,6 +73,7 @@ export default function AqiPage() {
             required
           />
         </div>
+        <p className="mt-3 text-xs text-[var(--app-muted)]">统计周期：{info.averagingPeriod} · 单位：{info.unit}</p>
       </section>
 
       {'error' in result ? (
@@ -78,14 +81,46 @@ export default function AqiPage() {
           {result.error}
         </div>
       ) : (
-        <ResultDisplay
-          title={info.name}
-          standard={`当前输入单位:${info.unit}`}
-          items={[
-            { label: 'IAQI', value: result.iaqi.toFixed(0), status: result.iaqi > 100 ? 'warning' : 'success' },
-            { label: '空气质量级别', value: result.level, status: result.iaqi > 100 ? 'warning' : 'success' },
-          ]}
-        />
+        <>
+          <ResultDisplay
+            title={result.pollutantName}
+            standard={`统计周期：${result.averagingPeriod} · 单位：${result.unit}`}
+            items={[
+              { label: 'IAQI', value: result.iaqi.toFixed(0), status: result.iaqi > 100 ? 'warning' : 'success' },
+              { label: '空气质量级别', value: result.level, status: result.iaqi > 100 ? 'warning' : 'success' },
+            ]}
+          />
+
+          <WarningList warnings={result.warnings} />
+
+          <CollapsibleSection
+            title="公式依据 / 适用条件"
+            badge={(result.meta.references?.length ?? 0) + (result.meta.limitations?.length ?? 0)}
+          >
+            <div className="flex flex-col gap-2">
+              <p><strong>公式：</strong>{result.meta.formulaText}</p>
+              {result.meta.references && result.meta.references.length > 0 && (
+                <p><strong>参考依据：</strong>{result.meta.references.join('，')}</p>
+              )}
+              {result.meta.applicability && (
+                <div>
+                  <strong>适用范围：</strong>
+                  <ul className="ml-4 list-disc">
+                    {result.meta.applicability.map((a, i) => <li key={i}>{a}</li>)}
+                  </ul>
+                </div>
+              )}
+              {result.meta.limitations && (
+                <div>
+                  <strong>限制说明：</strong>
+                  <ul className="ml-4 list-disc">
+                    {result.meta.limitations.map((l, i) => <li key={i}>{l}</li>)}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </CollapsibleSection>
+        </>
       )}
     </CalculatorShell>
   );

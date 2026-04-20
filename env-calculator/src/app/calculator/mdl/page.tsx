@@ -222,7 +222,7 @@ export default function MdlPage() {
         ) : (
           'error' in manualResult ? (
             <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-danger)] bg-[var(--app-danger-light)] p-4 text-sm font-medium text-[var(--app-danger)]">
-              {manualResult.error}
+              {String(manualResult.error)}
             </div>
           ) : (
             <ResultDisplay

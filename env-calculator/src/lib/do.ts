@@ -3,6 +3,8 @@
 // - Adjusts for actual atmospheric pressure using water vapour pressure correction
 // - Implements Excel-equivalent rounding for the final standard value
 
+import { CalculationWarning, FormulaMeta } from './calculators/types';
+
 export const STANDARD_ATM_KPA = 101.325;
 
 // Integer-degree table (mg/L) at 1 atm for 0..40 C, taken from 溶解氧.md
@@ -108,7 +110,23 @@ export interface DOComputationResult {
   standard_value: number; // rounded to 2 decimals (bankers)
   range_min: number;  // standard_value - 0.5
   range_max: number;  // standard_value + 0.5
+  warnings: CalculationWarning[];
+  meta: FormulaMeta;
 }
+
+export const DO_META: FormulaMeta = {
+  formulaName: '饱和溶解氧(淡水, 标准大气压校正)',
+  formulaText: 'DO_sat(P) = DO_sat(1 atm) × (P - es) / (101.325 - es)',
+  formulaType: 'standard-method',
+  resultLevel: 'reportable-check',
+  references: ['HJ 506-2009', 'GB 7489-1987'],
+  applicability: ['淡水饱和溶解氧 0~40℃', '电化学/光学溶解氧仪校准参考'],
+  limitations: [
+    '查表基于淡水、标准大气压',
+    '未修正盐度（海水/咸水应另加盐度修正）',
+    '大气压低于饱和水汽压时无法计算',
+  ],
+};
 
 export function computeDO(
   pressure_kPa: number,
@@ -121,18 +139,59 @@ export function computeDO(
     return { error: '请输入温度(℃)' };
   }
   if (tC > 40) {
-    return { error: '高于40℃无法计算' };
+    return { error: '高于40℃无法计算(查表范围 0~40℃)' };
   }
   if (tC < 0) {
-    return { error: '低于0℃无法计算' };
+    return { error: '低于0℃无法计算(查表范围 0~40℃)' };
+  }
+  if (pressure_kPa <= 0) {
+    return { error: '大气压必须大于 0' };
+  }
+
+  const warnings: CalculationWarning[] = [];
+
+  if (pressure_kPa < 50 || pressure_kPa > 110) {
+    warnings.push({
+      level: 'warning',
+      message: `大气压 ${pressure_kPa} kPa 偏离常规范围(约 50~110 kPa)`,
+      suggestion: '请确认气压计读数及单位(1 atm ≈ 101.325 kPa)',
+    });
   }
 
   const g2 = saturatedDOAt1Atm(tC);
   if (g2 == null) return { error: '温度超出可计算范围(0-40℃)' };
 
   const es = waterVapourPressure_kPa(tC);
+
+  // 显式校验：大气压必须大于饱和水汽压，否则(P - es) ≤ 0 无物理意义
+  if (pressure_kPa <= es) {
+    return {
+      error: `大气压 ${pressure_kPa} kPa 不大于当前温度下的饱和水汽压 ${es.toFixed(3)} kPa，无法计算`,
+    };
+  }
+
   const raw = saturatedDO_atPressure_kPa(tC, pressure_kPa);
   if (raw == null) return { error: '计算失败，请检查输入' };
+
+  if (raw <= 0) {
+    return { error: '计算得到非正饱和溶解氧，请检查温度/气压输入' };
+  }
+
+  // 低温/高温附加提示
+  if (tC >= 35) {
+    warnings.push({
+      level: 'info',
+      message: `水温 ${tC}℃ 接近查表上限`,
+      suggestion: '高温条件下溶解氧较低，请确认仪表量程与测定条件',
+    });
+  }
+
+  // 淡水-盐度说明
+  warnings.push({
+    level: 'info',
+    message: '本表按淡水饱和值给出，未作盐度修正',
+    suggestion: '海水/咸水需按实际盐度进行 Benson-Krause/APHA 公式修正',
+  });
 
   const std = roundHalfToEven(raw, 2);
   return {
@@ -142,6 +201,7 @@ export function computeDO(
     standard_value: std,
     range_min: std - 0.5,
     range_max: std + 0.5,
+    warnings,
+    meta: DO_META,
   };
 }
-
